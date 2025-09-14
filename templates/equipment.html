@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Equipment {{ equipment_id }} - Actions{% endblock %}
+
+{% block content %}
+<button class="back-btn" onclick="goBackToGenerator()">← Back to Generator</button>
+
+<div class="equipment-info">
+    🏭 Equipment: <span style="color: #667eea;">{{ equipment_id }}</span>
+</div>
+
+<div class="welcome-section">
+    <h2 class="welcome-title">Welcome to Equipment Portal</h2>
+    <p class="welcome-subtitle">Select an action to proceed:</p>
+</div>
+
+<div class="action-options">
+    <button class="action-btn repair" onclick="selectAction('repair')" id="repairBtn">
+        <div class="action-icon">🔧</div>
+        <div>Repair</div>
+    </button>
+    
+    <button class="action-btn training" onclick="selectAction('training')" id="trainingBtn">
+        <div class="action-icon">📚</div>
+        <div>Training</div>
+    </button>
+    
+    <button class="action-btn maintenance" onclick="selectAction('maintenance')" id="maintenanceBtn">
+        <div class="action-icon">⚙️</div>
+        <div>Maintenance</div>
+    </button>
+    
+    <button class="action-btn status" onclick="selectAction('status')" id="statusBtn">
+        <div class="action-icon">📊</div>
+        <div>Status</div>
+    </button>
+</div>
+
+<div id="statusMessage"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Application state
+const currentEquipmentId = '{{ equipment_id }}';
+
+function selectAction(action) {
+    const actionNames = {
+        'repair': 'Repair',
+        'training': 'Training',
+        'maintenance': 'Maintenance',
+        'status': 'Status'
+    };
+    
+    const selectedAction = actionNames[action];
+    
+    // Disable all action buttons while processing
+    disableActionButtons(true);
+    
+    showStatus(`${selectedAction} selected for equipment ${currentEquipmentId}. Processing...`, 'loading');
+    
+    // Make API request to Flask backend
+    fetch('/api/action', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: action,
+            equipment_id: currentEquipmentId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStatus(data.message, 'success');
+        } else {
+            showStatus(`Failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Action error:', error);
+        showStatus(`Failed to submit ${selectedAction.toLowerCase()} request: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        disableActionButtons(false);
+    });
+}
+
+function disableActionButtons(disable) {
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        btn.disabled = disable;
+        if (disable) {
+            btn.style.cursor = 'not-allowed';
+            btn.style.opacity = '0.6';
+        } else {
+            btn.style.cursor = 'pointer';
+            btn.style.opacity = '1';
+        }
+    });
+}
+
+function goBackToGenerator() {
+    window.location.href = '/';
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('statusMessage');
+    let iconClass = '';
+    
+    if (type === 'loading') {
+        iconClass = '<div class="spinner"></div> ';
+    }
+    
+    statusDiv.innerHTML = `<div class="status-message status-${type}">${iconClass}${message}</div>`;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    } else if (type === 'error') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 10000);
+    }
+}
+</script>
+{% endblock %}

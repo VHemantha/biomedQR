@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Equipment QR System - Generator{% endblock %}
+
+{% block content %}
+<h1>🔧 Equipment QR System</h1>
+
+<!-- QR Generator Section -->
+<div id="generator-section">
+    <h2>📱 Generate QR Code</h2>
+    
+    <div class="config-section">
+        <div class="form-group">
+            <label for="equipment_id">Equipment ID:</label>
+            <input type="text" id="equipment_id" placeholder="Enter equipment ID (e.g., EQP-001)" required>
+        </div>
+        
+        <div class="qr-methods">
+            <div class="method-btn active" data-method="online">🌐 Online QR</div>
+            <div class="method-btn" data-method="library">📚 JS Library</div>
+        </div>
+        
+        <button type="button" class="btn" onclick="generateQR()">🚀 Generate QR Code</button>
+    </div>
+    
+    <div id="qr-display" class="qr-display hidden">
+        <div id="qrcode"></div>
+        <p style="margin-top: 15px; color: #4a5568;">
+            Scan this QR code to access equipment: <strong id="qr-equipment-id"></strong>
+        </p>
+        <p style="margin-top: 10px; color: #666; font-size: 14px;">
+            📱 This QR code will open the equipment action menu
+        </p>
+        <button class="btn" onclick="downloadQR()" style="margin-top: 15px;">⬇️ Download QR Code</button>
+    </div>
+</div>
+
+<div id="statusMessage"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Application state
+let currentEquipmentId = '';
+let selectedMethod = 'online';
+
+// Initialize on page load
+window.onload = function() {
+    initializeMethodSelection();
+};
+
+function initializeMethodSelection() {
+    const methodBtns = document.querySelectorAll('.method-btn');
+    methodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            methodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            selectedMethod = this.dataset.method;
+        });
+    });
+}
+
+function generateQR() {
+    const equipmentId = document.getElementById('equipment_id').value.trim();
+    
+    if (!equipmentId) {
+        showStatus('Please enter an equipment ID', 'error');
+        return;
+    }
+    
+    // Get QR URL from Flask backend
+    fetch(`/generate_qr?equipment_id=${encodeURIComponent(equipmentId)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.qr_url) {
+                if (selectedMethod === 'online') {
+                    generateOnlineQR(data.qr_url, equipmentId);
+                } else {
+                    generateLibraryQR(data.qr_url, equipmentId);
+                }
+            } else {
+                showStatus('Failed to generate QR URL', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error generating QR URL:', error);
+            showStatus('Failed to generate QR URL', 'error');
+        });
+}
+
+function generateOnlineQR(qrUrl, equipmentId) {
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = '<p style="color: #667eea;">Generating QR Code...</p>';
+    
+    // Create image element for online QR service
+    const img = document.createElement('img');
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(qrUrl)}`;
+    img.alt = 'QR Code for ' + equipmentId;
+    img.style.borderRadius = '12px';
+    img.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+    img.style.maxWidth = '100%';
+    
+    img.onload = function() {
+        qrContainer.innerHTML = '';
+        qrContainer.appendChild(img);
+        
+        document.getElementById('qr-display').classList.remove('hidden');
+        document.getElementById('qr-equipment-id').textContent = equipmentId;
+        showStatus('QR Code generated successfully!', 'success');
+        
+        currentEquipmentId = equipmentId;
+    };
+    
+    img.onerror = function() {
+        qrContainer.innerHTML = '<p style="color: #fc466b;">Failed to load QR code</p>';
+        showStatus('Failed to generate QR code using online service. Please try the JS Library method or check your internet connection.', 'error');
+    };
+}
+
+function generateLibraryQR(qrUrl, equipmentId) {
+    // Dynamic import of QR library
+    if (!window.QRCode) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+        script.onload = function() {
+            console.log('QRCode library loaded successfully');
+            generateWithLibrary(qrUrl, equipmentId);
+        };
+        script.onerror = function() {
+            showStatus('Failed to load QR Code library. Please use Online QR method instead.', 'error');
+        };
+        document.head.appendChild(script);
+    } else {
+        generateWithLibrary(qrUrl, equipmentId);
+    }
+}
+
+function generateWithLibrary(qrUrl, equipmentId) {
+    const qrContainer = document.getElementById('qrcode');
+    qrContainer.innerHTML = '';
+    
+    try {
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        qrContainer.appendChild(canvas);
+        
+        window.QRCode.toCanvas(canvas, qrUrl, {
+            width: 300,
+            height: 300,
+            colorDark: '#2d3748',
+            colorLight: '#ffffff',
+            errorCorrectionLevel: 'H'
+        }, function (error) {
+            if (error) {
+                console.error('QR Generation Error:', error);
+                qrContainer.innerHTML = '<p style="color: #fc466b;">Library QR generation failed</p>';
+                showStatus('QR generation failed with library method. Try the Online QR method instead.', 'error');
+            } else {
+                document.getElementById('qr-display').classList.remove('hidden');
+                document.getElementById('qr-equipment-id').textContent = equipmentId;
+                showStatus('QR Code generated successfully using JS library!', 'success');
+                
+                currentEquipmentId = equipmentId;
+            }
+        });
+    } catch (error) {
+        console.error('Library error:', error);
+        qrContainer.innerHTML = '<p style="color: #fc466b;">Library error occurred</p>';
+        showStatus('Library error. Please try the Online QR method.', 'error');
+    }
+}
+
+function downloadQR() {
+    const qrContainer = document.getElementById('qrcode');
+    const canvas = qrContainer.querySelector('canvas');
+    const img = qrContainer.querySelector('img');
+    
+    if (canvas) {
+        // Download canvas QR code
+        const link = document.createElement('a');
+        link.download = `qr_${currentEquipmentId}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showStatus('QR Code downloaded successfully!', 'success');
+    } else if (img) {
+        // For online QR, create a new link
+        const link = document.createElement('a');
+        link.download = `qr_${currentEquipmentId}.png`;
+        link.href = img.src;
+        link.target = '_blank';
+        link.click();
+        showStatus('QR Code download initiated!', 'success');
+    } else {
+        showStatus('No QR code available to download', 'error');
+    }
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('statusMessage');
+    let iconClass = '';
+    
+    if (type === 'loading') {
+        iconClass = '<div class="spinner"></div> ';
+    }
+    
+    statusDiv.innerHTML = `<div class="status-message status-${type}">${iconClass}${message}</div>`;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    } else if (type === 'error') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 10000);
+    }
+}
+</script>
+{% endblock %}
