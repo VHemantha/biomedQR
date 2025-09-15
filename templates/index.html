@@ -15,6 +15,21 @@
             <input type="text" id="equipment_id" placeholder="Enter equipment ID (e.g., EQP-001)" required>
         </div>
         
+        <div class="form-group">
+            <label for="hospital">Hospital:</label>
+            <input type="text" id="hospital" placeholder="Enter hospital name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="unit_code">Unit code:</label>
+            <input type="text" id="unit_code" placeholder="Enter unit code" required>
+        </div>
+
+        <div class="form-group">
+            <label for="serial_number">Serial Number:</label>
+            <input type="text" id="serial_number" placeholder="Enter serial number" required>
+        </div>
+        
         <div class="qr-methods">
             <div class="method-btn active" data-method="online">🌐 Online QR</div>
             <div class="method-btn" data-method="library">📚 JS Library</div>
@@ -62,14 +77,23 @@ function initializeMethodSelection() {
 
 function generateQR() {
     const equipmentId = document.getElementById('equipment_id').value.trim();
+    const hospital = document.getElementById('hospital').value.trim();
+    const unitCode = document.getElementById('unit_code').value.trim();
+    const serialNumber = document.getElementById('serial_number').value.trim();
     
-    if (!equipmentId) {
-        showStatus('Please enter an equipment ID', 'error');
+    if (!equipmentId || !hospital || !unitCode || !serialNumber) {
+        showStatus('Please fill in Equipment ID, Hospital, Unit code, and Serial Number', 'error');
         return;
     }
     
     // Get QR URL from Flask backend
-    fetch(`/generate_qr?equipment_id=${encodeURIComponent(equipmentId)}`)
+    const params = new URLSearchParams({
+        equipment_id: equipmentId,
+        hospital: hospital,
+        unit_code: unitCode,
+        serial_number: serialNumber
+    });
+    fetch(`/generate_qr?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
             if (data.qr_url) {

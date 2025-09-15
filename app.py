@@ -86,7 +86,15 @@ def index():
 @app.route('/equipment/<equipment_id>')
 def equipment_actions(equipment_id):
     """Equipment actions page"""
-    return render_template('equipment.html', equipment_id=equipment_id)
+    # Read optional context from URL params for display
+    hospital = request.args.get('hospital', '')
+    unit_code = request.args.get('unit_code', '')
+    serial_number = request.args.get('serial_number', '')
+    return render_template('equipment.html', 
+                           equipment_id=equipment_id,
+                           hospital=hospital,
+                           unit_code=unit_code,
+                           serial_number=serial_number)
 
 @app.route('/api/action', methods=['POST'])
 def handle_action():
@@ -104,6 +112,7 @@ def handle_action():
         # Prepare API data based on action
         api_data = {
             'facilityID': equipment_id,
+            'assigneeId':'QWOY3YPHWS5AV3SYYRTEHUFFYMPTNIE2QWOY3YPHWS5AV3SYYRTEHUFFYMPTNIE2',
             'reportedDate': current_date,
             'remarkByInitiator': f"{action.title()} request submitted via QR code scan",
             'locationID': equipment_id,
@@ -160,10 +169,21 @@ def handle_action():
 def generate_qr():
     """Generate QR code URL"""
     equipment_id = request.args.get('equipment_id')
+    hospital = request.args.get('hospital', '')
+    unit_code = request.args.get('unit_code', '')
+    serial_number = request.args.get('serial_number', '')
+
     if not equipment_id:
         return jsonify({'error': 'Equipment ID required'}), 400
+    if not hospital or not unit_code or not serial_number:
+        return jsonify({'error': 'Hospital, Unit code, and Serial Number required'}), 400
     
-    qr_url = url_for('equipment_actions', equipment_id=equipment_id, _external=True)
+    qr_url = url_for('equipment_actions', 
+                     equipment_id=equipment_id, 
+                     hospital=hospital,
+                     unit_code=unit_code,
+                     serial_number=serial_number,
+                     _external=True)
     return jsonify({'qr_url': qr_url})
 
 if __name__ == '__main__':

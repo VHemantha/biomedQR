@@ -7,6 +7,14 @@
 
 <div class="equipment-info">
     🏭 Equipment: <span style="color: #667eea;">{{ equipment_id }}</span>
+    {% if hospital or unit_code or serial_number %}
+    <div style="margin-top:10px; font-size:16px;">
+        {% if hospital %}🏥 Hospital: <strong>{{ hospital }}</strong>{% endif %}
+        {% if unit_code %} &nbsp; | &nbsp; 🔢 Unit code: <strong>{{ unit_code }}</strong>{% endif %}
+        {% if serial_number %} &nbsp; | &nbsp; 🔖 Serial Number: <strong>{{ serial_number }}</strong>{% endif %}
+    </div>
+    {% endif %}
+    
 </div>
 
 <div class="welcome-section">
@@ -110,7 +118,7 @@ function showStatus(message, type) {
     let iconClass = '';
     
     if (type === 'loading') {
-        iconClass = '<div class="spinner"></div> ';
+        iconClass = '<div class="spinner"></div>';
     }
     
     statusDiv.innerHTML = `<div class="status-message status-${type}">${iconClass}${message}</div>`;
