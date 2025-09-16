@@ -11,6 +11,8 @@ CLIENT_ID = 'E7NKOOGKXQPXLF36KEEQPWPMQF5AHI2ZFUQAYBMT'
 CLIENT_SECRET = 'i2HMGBswdoVL1Ta1r084XIU8ZrR9TBODtxIuFQcV2_fse5iuAfMF83VZHT-c6c_GiitngkEP'
 TOKEN_URL = 'https://app.workhub24.com/api/auth/token'
 API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wd9e53c83d2/cards'
+# Datatable endpoint to create records when generating QR
+DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 
 # Global variables for token management
 access_token = None
@@ -78,6 +80,33 @@ def make_api_request(data):
     except requests.exceptions.RequestException as e:
         raise Exception(f"Network error: {str(e)}")
 
+def create_datatable_record(record_payload):
+    """Create a datatable record using the token auth."""
+    token = get_access_token()
+    if not token:
+        raise Exception('Failed to obtain access token')
+
+    try:
+        response = requests.post(
+            DATATABLE_ENDPOINT,
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            json=record_payload
+        )
+        print(f"Datatable Response Status: {response.status_code}")
+        if response.status_code in [200, 201]:
+            print(f"Datatable Response Data: {response.json()}")
+            return response.json()
+        else:
+            print(f"Datatable Error: {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Datatable Network error: {str(e)}")
+        return None
+
 @app.route('/')
 def index():
     """Main page - QR generator"""
@@ -126,7 +155,7 @@ def handle_action():
         # New API payload schema with requested mappings
         api_data = {
             'title': action_titles[action],
-            'assigneeId': 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY',
+            'userName': 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY',
             'currentDate': current_date,
             'productModel': unit_code,          # map unit code -> productModel
             'serialNumber': serial_number,      # map serial number -> serialNumber
@@ -167,6 +196,21 @@ def generate_qr():
     if not hospital or not unit_code or not serial_number:
         return jsonify({'error': 'Hospital, Unit code, and Serial Number required'}), 400
     
+    # Create a datatable record using provided fields
+    datatable_payload = {
+        'itemID': equipment_id,
+        'productLocation': hospital,   # hospital -> productLocation
+        'productModel': unit_code,     # unit_code -> productModel
+        'productType': '',             # no field provided; leaving empty
+        'serialNumber': serial_number  # serial_number -> serialNumber
+    }
+
+    try:
+        create_datatable_record(datatable_payload)
+    except Exception as e:
+        # Log but do not block QR generation
+        print(f"Failed to create datatable record: {str(e)}")
+
     qr_url = url_for('equipment_actions', 
                      equipment_id=equipment_id, 
                      hospital=hospital,
