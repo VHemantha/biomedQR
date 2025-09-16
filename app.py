@@ -7,10 +7,10 @@ import os
 app = Flask(__name__)
 
 # Configuration
-CLIENT_ID = 'JYL3LVURXHMERKNRTUR6GAVI2GCOKD7IJUDWG4YT'
-CLIENT_SECRET = 'cGD22PuMvfIytbBoNI_3iZ1_60rbbwSb19PS7BmAnpQbux4yGtS6CMdppGIhGBaG6Jcd093m'
+CLIENT_ID = 'E7NKOOGKXQPXLF36KEEQPWPMQF5AHI2ZFUQAYBMT'
+CLIENT_SECRET = 'i2HMGBswdoVL1Ta1r084XIU8ZrR9TBODtxIuFQcV2_fse5iuAfMF83VZHT-c6c_GiitngkEP'
 TOKEN_URL = 'https://app.workhub24.com/api/auth/token'
-API_ENDPOINT = 'https://app.workhub24.com/api/workflows/XMFFQMFUEFUXL5UEC72I5XJZQB24ME56/w6890b2a840/cards'
+API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wd9e53c83d2/cards'
 
 # Global variables for token management
 access_token = None
@@ -103,52 +103,41 @@ def handle_action():
         data = request.get_json()
         action = data.get('action')
         equipment_id = data.get('equipment_id')
+        hospital = data.get('hospital') or ''
+        unit_code = data.get('unit_code') or ''
+        serial_number = data.get('serial_number') or ''
         
         if not action or not equipment_id:
             return jsonify({'error': 'Missing action or equipment_id'}), 400
         
         current_date = datetime.now().strftime('%Y-%m-%d')
         
-        # Prepare API data based on action
-        api_data = {
-            'facilityID': equipment_id,
-            'assigneeId':'QWOY3YPHWS5AV3SYYRTEHUFFYMPTNIE2QWOY3YPHWS5AV3SYYRTEHUFFYMPTNIE2',
-            'reportedDate': current_date,
-            'remarkByInitiator': f"{action.title()} request submitted via QR code scan",
-            'locationID': equipment_id,
-            'equipmentText': f"Equipment ID: {equipment_id}",
-            'facilityText': f"{action.title()} for equipment {equipment_id}",
-            'markAsCompleted': action == 'status'
+        # Map action identifiers to titles
+        action_titles = {
+            'repair': f'Repair Request - Equipment {equipment_id}',
+            'user_training': f'User Training - Equipment {equipment_id}',
+            'one_time_service': f'One Time Service Request - Equipment {equipment_id}',
+            'consumer_request': f'Consumer Request - Equipment {equipment_id}'
         }
-        
-        if action == 'repair':
-            api_data.update({
-                'title': f'Repair Request - Equipment {equipment_id}',
-                'issue': f'Repair request submitted for equipment {equipment_id}',
-                'priorityLevel': 'High',
-                'confirmedToIssueSpareparts': False
-            })
-        elif action == 'training':
-            api_data.update({
-                'title': f'Training Request - Equipment {equipment_id}',
-                'issue': f'Training materials requested for equipment {equipment_id}',
-                'priorityLevel': 'Medium'
-            })
-        elif action == 'maintenance':
-            api_data.update({
-                'title': f'Maintenance Request - Equipment {equipment_id}',
-                'issue': f'Scheduled maintenance requested for equipment {equipment_id}',
-                'priorityLevel': 'Medium',
-                'numOfDays': 7
-            })
-        elif action == 'status':
-            api_data.update({
-                'title': f'Status Check - Equipment {equipment_id}',
-                'issue': f'Status check requested for equipment {equipment_id}',
-                'priorityLevel': 'Low'
-            })
-        else:
+
+        if action not in action_titles:
             return jsonify({'error': 'Invalid action'}), 400
+
+        # New API payload schema with requested mappings
+        api_data = {
+            'title': action_titles[action],
+            'assigneeId': 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY',
+            'currentDate': current_date,
+            'productModel': unit_code,          # map unit code -> productModel
+            'serialNumber': serial_number,      # map serial number -> serialNumber
+            'productLocation': hospital,        # map hospital -> productLocation
+            'hospitalName': hospital,           # also set hospital name if required
+            'contactPerson': None,
+            'conactTel': None,
+            'installationDate': None,
+            'productType': None,
+            'warrantyExpireDate': None
+        }
         
         # Make API request
         result = make_api_request(api_data)

@@ -28,19 +28,19 @@
         <div>Repair</div>
     </button>
     
-    <button class="action-btn training" onclick="selectAction('training')" id="trainingBtn">
+    <button class="action-btn training" onclick="selectAction('user_training')" id="trainingBtn">
         <div class="action-icon">📚</div>
-        <div>Training</div>
+        <div>User Training</div>
     </button>
     
-    <button class="action-btn maintenance" onclick="selectAction('maintenance')" id="maintenanceBtn">
+    <button class="action-btn maintenance" onclick="selectAction('one_time_service')" id="maintenanceBtn">
         <div class="action-icon">⚙️</div>
-        <div>Maintenance</div>
+        <div>One time service request</div>
     </button>
     
-    <button class="action-btn status" onclick="selectAction('status')" id="statusBtn">
+    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn">
         <div class="action-icon">📊</div>
-        <div>Status</div>
+        <div>Consumer request</div>
     </button>
 </div>
 
@@ -51,6 +51,9 @@
 <script>
 // Application state
 const currentEquipmentId = '{{ equipment_id }}';
+const hospital = `{{ hospital }}`;
+const unitCode = `{{ unit_code }}`;
+const serialNumber = `{{ serial_number }}`;
 
 function selectAction(action) {
     const actionNames = {
@@ -75,7 +78,10 @@ function selectAction(action) {
         },
         body: JSON.stringify({
             action: action,
-            equipment_id: currentEquipmentId
+            equipment_id: currentEquipmentId,
+            hospital: hospital,
+            unit_code: unitCode,
+            serial_number: serialNumber
         })
     })
     .then(response => response.json())
