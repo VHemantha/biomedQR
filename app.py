@@ -168,7 +168,8 @@ def handle_action():
             'productModel': unit_code,          # map unit code -> productModel
             'serialNumber': serial_number,      # map serial number -> serialNumber
             'productLocation': hospital,        # map hospital -> productLocation
-            'hospitalName': hospital,           # also set hospital name if required
+            'hospital': hospital,
+            'requestType':action,          # also set hospital name if required
             'supplierName': supplier_name,      # add supplier name
             'unit': unit,                       # add unit
             'itemID': item_id,                  # add auto-generated item ID
