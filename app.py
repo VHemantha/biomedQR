@@ -112,8 +112,8 @@ def index():
     """Main page - QR generator"""
     return render_template('index.html')
 
-@app.route('/equipment/<equipment_id>')
-def equipment_actions(equipment_id):
+@app.route('/equipment/<item_id>')
+def equipment_actions(item_id):
     """Equipment actions page"""
     # Read optional context from URL params for display
     hospital = request.args.get('hospital', '')
@@ -121,9 +121,8 @@ def equipment_actions(equipment_id):
     serial_number = request.args.get('serial_number', '')
     supplier_name = request.args.get('supplier_name', '')
     unit = request.args.get('unit', '')
-    item_id = request.args.get('item_id', '')
     return render_template('equipment.html', 
-                           equipment_id=equipment_id,
+                           equipment_id=item_id,
                            hospital=hospital,
                            unit_code=unit_code,
                            serial_number=serial_number,
@@ -137,7 +136,7 @@ def handle_action():
     try:
         data = request.get_json()
         action = data.get('action')
-        equipment_id = data.get('equipment_id')
+        equipment_id = data.get('equipment_id')  # This is now the item_id
         hospital = data.get('hospital') or ''
         unit_code = data.get('unit_code') or ''
         serial_number = data.get('serial_number') or ''
@@ -152,10 +151,10 @@ def handle_action():
         
         # Map action identifiers to titles
         action_titles = {
-            'repair': f'Repair Request - Equipment {equipment_id}',
-            'user_training': f'User Training - Equipment {equipment_id}',
-            'one_time_service': f'One Time Service Request - Equipment {equipment_id}',
-            'consumer_request': f'Consumer Request - Equipment {equipment_id}'
+            'repair': f'Repair Request - Item {equipment_id}',
+            'user_training': f'User Training - Item {equipment_id}',
+            'one_time_service': f'One Time Service Request - Item {equipment_id}',
+            'consumer_request': f'Consumer Request - Item {equipment_id}'
         }
 
         if action not in action_titles:
@@ -177,7 +176,9 @@ def handle_action():
             'conactTel': None,
             'installationDate': None,
             'productType': None,
-            'warrantyExpireDate': None
+            'warrantyExpireDate': None,
+            'supplierName': supplier_name,
+            'unit1': unit
         }
         
         # Make API request
@@ -198,7 +199,6 @@ def handle_action():
 @app.route('/generate_qr')
 def generate_qr():
     """Generate QR code URL"""
-    equipment_id = request.args.get('equipment_id')
     hospital = request.args.get('hospital', '')
     unit_code = request.args.get('unit_code', '')
     serial_number = request.args.get('serial_number', '')
@@ -206,10 +206,8 @@ def generate_qr():
     unit = request.args.get('unit', '')
     item_id = request.args.get('item_id', '')
 
-    if not equipment_id:
-        return jsonify({'error': 'Equipment ID required'}), 400
     if not hospital or not unit_code or not serial_number or not supplier_name or not unit:
-        return jsonify({'error': 'Hospital, Unit code, Serial Number, Supplier Name, and Unit required'}), 400
+        return jsonify({'error': 'Hospital, Model, Serial Number, Supplier Name, and Unit required'}), 400
     
     # Create a datatable record using provided fields
     datatable_payload = {
@@ -217,7 +215,9 @@ def generate_qr():
         'productLocation': hospital,   # hospital -> productLocation
         'productModel': unit_code,     # unit_code -> productModel
         'productType': '',             # no field provided; leaving empty
-        'serialNumber': serial_number  # serial_number -> serialNumber
+        'serialNumber': serial_number,
+        'supplierName': supplier_name,
+        'unit': unit  # serial_number -> serialNumber
     }
 
     try:
@@ -227,13 +227,12 @@ def generate_qr():
         print(f"Failed to create datatable record: {str(e)}")
 
     qr_url = url_for('equipment_actions', 
-                     equipment_id=equipment_id, 
+                     item_id=item_id,
                      hospital=hospital,
                      unit_code=unit_code,
                      serial_number=serial_number,
                      supplier_name=supplier_name,
                      unit=unit,
-                     item_id=item_id,
                      _external=True)
     return jsonify({'qr_url': qr_url})
 

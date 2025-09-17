@@ -11,11 +11,6 @@
     
     <div class="config-section">
         <div class="form-group">
-            <label for="equipment_id">Equipment ID:</label>
-            <input type="text" id="equipment_id" placeholder="Enter equipment ID (e.g., EQP-001)" required>
-        </div>
-        
-        <div class="form-group">
             <label for="hospital">Hospital:</label>
             <input type="text" id="hospital" placeholder="Enter hospital name" required>
         </div>
@@ -82,7 +77,7 @@ window.onload = function() {
 
 function initializeItemIdGeneration() {
     // Get all input fields that contribute to item ID
-    const fields = ['equipment_id', 'hospital', 'unit_code', 'serial_number', 'supplier_name', 'unit'];
+    const fields = ['hospital', 'unit_code', 'serial_number', 'supplier_name', 'unit'];
     
     fields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
@@ -93,7 +88,6 @@ function initializeItemIdGeneration() {
 }
 
 function generateItemId() {
-    const equipmentId = document.getElementById('equipment_id').value.trim();
     const hospital = document.getElementById('hospital').value.trim();
     const unitCode = document.getElementById('unit_code').value.trim();
     const serialNumber = document.getElementById('serial_number').value.trim();
@@ -101,8 +95,7 @@ function generateItemId() {
     const unit = document.getElementById('unit').value.trim();
     
     // Generate item ID from first 2 characters of each field
-    const itemId = (equipmentId.substring(0, 2) + 
-                   hospital.substring(0, 2) + 
+    const itemId = (hospital.substring(0, 2) + 
                    unitCode.substring(0, 2) + 
                    serialNumber.substring(0, 2) + 
                    supplierName.substring(0, 2) + 
@@ -127,7 +120,6 @@ function initializeMethodSelection() {
 }
 
 function generateQR() {
-    const equipmentId = document.getElementById('equipment_id').value.trim();
     const hospital = document.getElementById('hospital').value.trim();
     const unitCode = document.getElementById('unit_code').value.trim();
     const serialNumber = document.getElementById('serial_number').value.trim();
@@ -135,14 +127,13 @@ function generateQR() {
     const unit = document.getElementById('unit').value.trim();
     const itemId = document.getElementById('item_id').value.trim();
     
-    if (!equipmentId || !hospital || !unitCode || !serialNumber || !supplierName || !unit) {
-        showStatus('Please fill in all fields: Equipment ID, Hospital, Model, Serial Number, Supplier Name, and Unit', 'error');
+    if (!hospital || !unitCode || !serialNumber || !supplierName || !unit) {
+        showStatus('Please fill in all fields: Hospital, Model, Serial Number, Supplier Name, and Unit', 'error');
         return;
     }
     
     // Get QR URL from Flask backend
     const params = new URLSearchParams({
-        equipment_id: equipmentId,
         hospital: hospital,
         unit_code: unitCode,
         serial_number: serialNumber,
@@ -155,9 +146,9 @@ function generateQR() {
         .then(data => {
             if (data.qr_url) {
                 if (selectedMethod === 'online') {
-                    generateOnlineQR(data.qr_url, equipmentId);
+                    generateOnlineQR(data.qr_url, itemId);
                 } else {
-                    generateLibraryQR(data.qr_url, equipmentId);
+                    generateLibraryQR(data.qr_url, itemId);
                 }
             } else {
                 showStatus('Failed to generate QR URL', 'error');
@@ -186,10 +177,10 @@ function generateOnlineQR(qrUrl, equipmentId) {
         qrContainer.appendChild(img);
         
         document.getElementById('qr-display').classList.remove('hidden');
-        document.getElementById('qr-equipment-id').textContent = equipmentId;
+        document.getElementById('qr-equipment-id').textContent = itemId;
         showStatus('QR Code generated successfully!', 'success');
         
-        currentEquipmentId = equipmentId;
+        currentEquipmentId = itemId;
     };
     
     img.onerror = function() {
@@ -238,10 +229,10 @@ function generateWithLibrary(qrUrl, equipmentId) {
                 showStatus('QR generation failed with library method. Try the Online QR method instead.', 'error');
             } else {
                 document.getElementById('qr-display').classList.remove('hidden');
-                document.getElementById('qr-equipment-id').textContent = equipmentId;
+                document.getElementById('qr-equipment-id').textContent = itemId;
                 showStatus('QR Code generated successfully using JS library!', 'success');
                 
-                currentEquipmentId = equipmentId;
+                currentEquipmentId = itemId;
             }
         });
     } catch (error) {
