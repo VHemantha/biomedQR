@@ -180,7 +180,7 @@ def handle_action():
             'warrantyExpireDate': None,
             'supplierName': supplier_name,
             'unit1': unit,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%d %H:%M')
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }
         
         # Make API request
