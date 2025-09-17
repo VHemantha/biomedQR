@@ -7,11 +7,14 @@
 
 <div class="equipment-info">
     🏭 Equipment: <span style="color: #667eea;">{{ equipment_id }}</span>
-    {% if hospital or unit_code or serial_number %}
+    {% if hospital or unit_code or serial_number or supplier_name or unit or item_id %}
     <div style="margin-top:10px; font-size:16px;">
         {% if hospital %}🏥 Hospital: <strong>{{ hospital }}</strong>{% endif %}
         {% if unit_code %} &nbsp; | &nbsp; 🔢 Unit code: <strong>{{ unit_code }}</strong>{% endif %}
         {% if serial_number %} &nbsp; | &nbsp; 🔖 Serial Number: <strong>{{ serial_number }}</strong>{% endif %}
+        {% if supplier_name %} &nbsp; | &nbsp; 🏢 Supplier: <strong>{{ supplier_name }}</strong>{% endif %}
+        {% if unit %} &nbsp; | &nbsp; 📦 Unit: <strong>{{ unit }}</strong>{% endif %}
+        {% if item_id %} &nbsp; | &nbsp; 🆔 Item ID: <strong>{{ item_id }}</strong>{% endif %}
     </div>
     {% endif %}
     
@@ -54,6 +57,9 @@ const currentEquipmentId = '{{ equipment_id }}';
 const hospital = `{{ hospital }}`;
 const unitCode = `{{ unit_code }}`;
 const serialNumber = `{{ serial_number }}`;
+const supplierName = `{{ supplier_name }}`;
+const unit = `{{ unit }}`;
+const itemId = `{{ item_id }}`;
 
 function selectAction(action) {
     const actionNames = {
@@ -81,13 +87,18 @@ function selectAction(action) {
             equipment_id: currentEquipmentId,
             hospital: hospital,
             unit_code: unitCode,
-            serial_number: serialNumber
+            serial_number: serialNumber,
+            supplier_name: supplierName,
+            unit: unit,
+            item_id: itemId
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             showStatus(data.message, 'success');
+            // Disable the specific button that was clicked
+            disableSpecificButton(action);
         } else {
             showStatus(`Failed: ${data.error}`, 'error');
         }
@@ -99,6 +110,30 @@ function selectAction(action) {
     .finally(() => {
         disableActionButtons(false);
     });
+}
+
+function disableSpecificButton(action) {
+    // Map action to button ID
+    const actionToButtonId = {
+        'repair': 'repairBtn',
+        'user_training': 'trainingBtn',
+        'one_time_service': 'maintenanceBtn',
+        'consumer_request': 'statusBtn'
+    };
+    
+    const buttonId = actionToButtonId[action];
+    if (buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.disabled = true;
+            button.style.opacity = '0.6';
+            button.style.cursor = 'not-allowed';
+            button.innerHTML = `
+                <div class="action-icon">✅</div>
+                <div>Completed</div>
+            `;
+        }
+    }
 }
 
 function disableActionButtons(disable) {

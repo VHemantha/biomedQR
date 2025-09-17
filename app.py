@@ -119,11 +119,17 @@ def equipment_actions(equipment_id):
     hospital = request.args.get('hospital', '')
     unit_code = request.args.get('unit_code', '')
     serial_number = request.args.get('serial_number', '')
+    supplier_name = request.args.get('supplier_name', '')
+    unit = request.args.get('unit', '')
+    item_id = request.args.get('item_id', '')
     return render_template('equipment.html', 
                            equipment_id=equipment_id,
                            hospital=hospital,
                            unit_code=unit_code,
-                           serial_number=serial_number)
+                           serial_number=serial_number,
+                           supplier_name=supplier_name,
+                           unit=unit,
+                           item_id=item_id)
 
 @app.route('/api/action', methods=['POST'])
 def handle_action():
@@ -135,6 +141,9 @@ def handle_action():
         hospital = data.get('hospital') or ''
         unit_code = data.get('unit_code') or ''
         serial_number = data.get('serial_number') or ''
+        supplier_name = data.get('supplier_name') or ''
+        unit = data.get('unit') or ''
+        item_id = data.get('item_id') or ''
         
         if not action or not equipment_id:
             return jsonify({'error': 'Missing action or equipment_id'}), 400
@@ -161,6 +170,9 @@ def handle_action():
             'serialNumber': serial_number,      # map serial number -> serialNumber
             'productLocation': hospital,        # map hospital -> productLocation
             'hospitalName': hospital,           # also set hospital name if required
+            'supplierName': supplier_name,      # add supplier name
+            'unit': unit,                       # add unit
+            'itemID': item_id,                  # add auto-generated item ID
             'contactPerson': None,
             'conactTel': None,
             'installationDate': None,
@@ -190,15 +202,18 @@ def generate_qr():
     hospital = request.args.get('hospital', '')
     unit_code = request.args.get('unit_code', '')
     serial_number = request.args.get('serial_number', '')
+    supplier_name = request.args.get('supplier_name', '')
+    unit = request.args.get('unit', '')
+    item_id = request.args.get('item_id', '')
 
     if not equipment_id:
         return jsonify({'error': 'Equipment ID required'}), 400
-    if not hospital or not unit_code or not serial_number:
-        return jsonify({'error': 'Hospital, Unit code, and Serial Number required'}), 400
+    if not hospital or not unit_code or not serial_number or not supplier_name or not unit:
+        return jsonify({'error': 'Hospital, Unit code, Serial Number, Supplier Name, and Unit required'}), 400
     
     # Create a datatable record using provided fields
     datatable_payload = {
-        'itemID': equipment_id,
+        'itemID': item_id,
         'productLocation': hospital,   # hospital -> productLocation
         'productModel': unit_code,     # unit_code -> productModel
         'productType': '',             # no field provided; leaving empty
@@ -216,6 +231,9 @@ def generate_qr():
                      hospital=hospital,
                      unit_code=unit_code,
                      serial_number=serial_number,
+                     supplier_name=supplier_name,
+                     unit=unit,
+                     item_id=item_id,
                      _external=True)
     return jsonify({'qr_url': qr_url})
 

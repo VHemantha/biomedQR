@@ -29,6 +29,16 @@
             <label for="serial_number">Serial Number:</label>
             <input type="text" id="serial_number" placeholder="Enter serial number" required>
         </div>
+
+        <div class="form-group">
+            <label for="supplier_name">Supplier Name:</label>
+            <input type="text" id="supplier_name" placeholder="Enter supplier name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="unit">Unit:</label>
+            <input type="text" id="unit" placeholder="Enter unit" required>
+        </div>
         
         <div class="qr-methods">
             <div class="method-btn active" data-method="online">🌐 Online QR</div>
@@ -80,18 +90,31 @@ function generateQR() {
     const hospital = document.getElementById('hospital').value.trim();
     const unitCode = document.getElementById('unit_code').value.trim();
     const serialNumber = document.getElementById('serial_number').value.trim();
+    const supplierName = document.getElementById('supplier_name').value.trim();
+    const unit = document.getElementById('unit').value.trim();
     
-    if (!equipmentId || !hospital || !unitCode || !serialNumber) {
-        showStatus('Please fill in Equipment ID, Hospital, Unit code, and Serial Number', 'error');
+    if (!equipmentId || !hospital || !unitCode || !serialNumber || !supplierName || !unit) {
+        showStatus('Please fill in all fields: Equipment ID, Hospital, Unit code, Serial Number, Supplier Name, and Unit', 'error');
         return;
     }
+    
+    // Auto-generate itemID from first two characters of each field
+    const itemId = (equipmentId.substring(0, 2) + 
+                   hospital.substring(0, 2) + 
+                   unitCode.substring(0, 2) + 
+                   serialNumber.substring(0, 2) + 
+                   supplierName.substring(0, 2) + 
+                   unit.substring(0, 2)).toUpperCase();
     
     // Get QR URL from Flask backend
     const params = new URLSearchParams({
         equipment_id: equipmentId,
         hospital: hospital,
         unit_code: unitCode,
-        serial_number: serialNumber
+        serial_number: serialNumber,
+        supplier_name: supplierName,
+        unit: unit,
+        item_id: itemId
     });
     fetch(`/generate_qr?${params.toString()}`)
         .then(response => response.json())
