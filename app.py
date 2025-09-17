@@ -169,7 +169,7 @@ def handle_action():
             'serialNumber': serial_number,      # map serial number -> serialNumber
             'productLocation': hospital,        # map hospital -> productLocation
             'hospital': hospital,
-            'requestType': action.replace('_', ' '),          # replace underscores with spaces
+            'requestType': action.replace('_', ' ').title(),          # replace underscores with spaces
             'supplierName': supplier_name,      # add supplier name
             'unit': unit,                       # add unit
             'itemID': item_id,                  # add auto-generated item ID
