@@ -10,7 +10,7 @@
     {% if hospital or unit_code or serial_number or supplier_name or unit or item_id %}
     <div style="margin-top:10px; font-size:16px;">
         {% if hospital %}🏥 Hospital: <strong>{{ hospital }}</strong>{% endif %}
-        {% if unit_code %} &nbsp; | &nbsp; 🔢 Unit code: <strong>{{ unit_code }}</strong>{% endif %}
+        {% if unit_code %} &nbsp; | &nbsp; 🔢 Model: <strong>{{ unit_code }}</strong>{% endif %}
         {% if serial_number %} &nbsp; | &nbsp; 🔖 Serial Number: <strong>{{ serial_number }}</strong>{% endif %}
         {% if supplier_name %} &nbsp; | &nbsp; 🏢 Supplier: <strong>{{ supplier_name }}</strong>{% endif %}
         {% if unit %} &nbsp; | &nbsp; 📦 Unit: <strong>{{ unit }}</strong>{% endif %}
