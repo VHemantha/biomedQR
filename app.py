@@ -252,42 +252,17 @@ def get_master_data(item_id):
 
 @app.route('/generate_qr')
 def generate_qr():
-    """Generate QR code URL"""
-    hospital = request.args.get('hospital', '')
-    unit_code = request.args.get('unit_code', '')
-    serial_number = request.args.get('serial_number', '')
-    supplier_name = request.args.get('supplier_name', '')
-    unit = request.args.get('unit', '')
+    """Generate QR code URL - simplified to only use item_id"""
     item_id = request.args.get('item_id', '')
 
-    if not hospital or not unit_code or not serial_number or not supplier_name or not unit:
-        return jsonify({'error': 'Hospital, Model, Serial Number, Supplier Name, and Unit required'}), 400
+    if not item_id:
+        return jsonify({'error': 'Item ID is required'}), 400
 
-    # Create a datatable record using provided fields
-    datatable_payload = {
-        'itemID': item_id,
-        'productLocation': hospital,   # hospital -> productLocation
-        'productModel': unit_code,     # unit_code -> productModel
-        'productType': '',             # no field provided; leaving empty
-        'serialNumber': serial_number,
-        'supplierName': supplier_name,
-        'unit': unit
-    }
-
-    try:
-        create_datatable_record(datatable_payload)
-    except Exception as e:
-        # Log but do not block QR generation
-        print(f"Failed to create datatable record: {str(e)}")
-
+    # Generate QR URL with only item_id
     qr_url = url_for('equipment_actions',
                      item_id=item_id,
-                     hospital=hospital,
-                     unit_code=unit_code,
-                     serial_number=serial_number,
-                     supplier_name=supplier_name,
-                     unit=unit,
                      _external=True)
+    
     return jsonify({'qr_url': qr_url})
 
 if __name__ == '__main__':

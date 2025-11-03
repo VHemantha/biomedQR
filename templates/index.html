@@ -11,33 +11,8 @@
     
     <div class="config-section">
         <div class="form-group">
-            <label for="hospital">Hospital:</label>
-            <input type="text" id="hospital" placeholder="Enter hospital name" required>
-        </div>
-
-        <div class="form-group">
-            <label for="unit_code">Model:</label>
-            <input type="text" id="unit_code" placeholder="Enter model" required>
-        </div>
-
-        <div class="form-group">
-            <label for="serial_number">Serial Number:</label>
-            <input type="text" id="serial_number" placeholder="Enter serial number" required>
-        </div>
-
-        <div class="form-group">
-            <label for="supplier_name">Supplier Name:</label>
-            <input type="text" id="supplier_name" placeholder="Enter supplier name" required>
-        </div>
-
-        <div class="form-group">
-            <label for="unit">Unit:</label>
-            <input type="text" id="unit" placeholder="Enter unit" required>
-        </div>
-
-        <div class="form-group">
-            <label for="item_id">Item ID (Auto-generated):</label>
-            <input type="text" id="item_id" placeholder="Item ID will be generated automatically" readonly style="background-color: #f5f5f5;">
+            <label for="item_id">Item ID:</label>
+            <input type="text" id="item_id" placeholder="Enter Item ID" required>
         </div>
         
         <div class="qr-methods">
@@ -72,41 +47,7 @@ let selectedMethod = 'online';
 // Initialize on page load
 window.onload = function() {
     initializeMethodSelection();
-    initializeItemIdGeneration();
 };
-
-function initializeItemIdGeneration() {
-    // Get all input fields that contribute to item ID
-    const fields = ['hospital', 'unit_code', 'serial_number', 'supplier_name', 'unit'];
-    
-    fields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', generateItemId);
-        }
-    });
-}
-
-function generateItemId() {
-    const hospital = document.getElementById('hospital').value.trim();
-    const unitCode = document.getElementById('unit_code').value.trim();
-    const serialNumber = document.getElementById('serial_number').value.trim();
-    const supplierName = document.getElementById('supplier_name').value.trim();
-    const unit = document.getElementById('unit').value.trim();
-    
-    // Generate item ID from first 2 characters of each field
-    const itemId = (hospital.substring(0, 2) + 
-                   unitCode.substring(0, 2) + 
-                   serialNumber.substring(0, 2) + 
-                   supplierName.substring(0, 2) + 
-                   unit.substring(0, 2)).toUpperCase();
-    
-    // Update the item ID field
-    const itemIdField = document.getElementById('item_id');
-    if (itemIdField) {
-        itemIdField.value = itemId;
-    }
-}
 
 function initializeMethodSelection() {
     const methodBtns = document.querySelectorAll('.method-btn');
@@ -120,27 +61,18 @@ function initializeMethodSelection() {
 }
 
 function generateQR() {
-    const hospital = document.getElementById('hospital').value.trim();
-    const unitCode = document.getElementById('unit_code').value.trim();
-    const serialNumber = document.getElementById('serial_number').value.trim();
-    const supplierName = document.getElementById('supplier_name').value.trim();
-    const unit = document.getElementById('unit').value.trim();
     const itemId = document.getElementById('item_id').value.trim();
     
-    if (!hospital || !unitCode || !serialNumber || !supplierName || !unit) {
-        showStatus('Please fill in all fields: Hospital, Model, Serial Number, Supplier Name, and Unit', 'error');
+    if (!itemId) {
+        showStatus('Please enter an Item ID', 'error');
         return;
     }
     
     // Get QR URL from Flask backend
     const params = new URLSearchParams({
-        hospital: hospital,
-        unit_code: unitCode,
-        serial_number: serialNumber,
-        supplier_name: supplierName,
-        unit: unit,
         item_id: itemId
     });
+    
     fetch(`/generate_qr?${params.toString()}`)
         .then(response => response.json())
         .then(data => {
@@ -151,7 +83,7 @@ function generateQR() {
                     generateLibraryQR(data.qr_url, itemId);
                 }
             } else {
-                showStatus('Failed to generate QR URL', 'error');
+                showStatus(data.error || 'Failed to generate QR URL', 'error');
             }
         })
         .catch(error => {
