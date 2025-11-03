@@ -7,41 +7,84 @@
 
 <div class="equipment-info">
     🏭 Item: <span style="color: #667eea;">{{ equipment_id }}</span>
-    {% if hospital or unit_code or serial_number or supplier_name or unit or item_id %}
-    <div style="margin-top:10px; font-size:16px;">
-        {% if hospital %}🏥 Hospital: <strong>{{ hospital }}</strong>{% endif %}
-        {% if unit_code %} &nbsp; | &nbsp; 🔢 Model: <strong>{{ unit_code }}</strong>{% endif %}
-        {% if serial_number %} &nbsp; | &nbsp; 🔖 Serial Number: <strong>{{ serial_number }}</strong>{% endif %}
-        {% if supplier_name %} &nbsp; | &nbsp; 🏢 Supplier: <strong>{{ supplier_name }}</strong>{% endif %}
-        {% if unit %} &nbsp; | &nbsp; 📦 Unit: <strong>{{ unit }}</strong>{% endif %}
-        {% if item_id %} &nbsp; | &nbsp; 🆔 Item ID: <strong>{{ item_id }}</strong>{% endif %}
-    </div>
-    {% endif %}
-    
 </div>
 
 <div class="welcome-section">
     <h2 class="welcome-title">Welcome to Equipment Portal</h2>
-    <p class="welcome-subtitle">Select an action to proceed:</p>
+    <p class="welcome-subtitle">Get master data to proceed:</p>
 </div>
 
-<div class="action-options">
-    <button class="action-btn repair" onclick="selectAction('repair')" id="repairBtn">
+<!-- Get Master Data Button -->
+<div style="text-align: center; margin: 30px 0;">
+    <button class="master-data-btn" onclick="fetchAndMapMasterData()" id="getMasterDataBtn">
+        <div class="action-icon">🔍</div>
+        <div>Get Master Data</div>
+    </button>
+</div>
+
+<!-- Master Data Form Section (Initially Hidden) -->
+<div id="masterDataForm" class="master-data-form" style="display: none;">
+    <h3 style="color: #667eea; margin-bottom: 20px;">Equipment Details</h3>
+    
+    <div class="form-group">
+        <label for="form-itemID">Item ID:</label>
+        <input type="text" id="form-itemID" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-productLocation">Hospital / Location:</label>
+        <input type="text" id="form-productLocation" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-productModel">Product Model:</label>
+        <input type="text" id="form-productModel" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-serialNumber">Serial Number:</label>
+        <input type="text" id="form-serialNumber" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-supplierName">Supplier Name:</label>
+        <input type="text" id="form-supplierName" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-unit">Unit:</label>
+        <input type="text" id="form-unit" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-createdDate">Created Date:</label>
+        <input type="text" id="form-createdDate" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-lastUpdatedDate">Last Updated Date:</label>
+        <input type="text" id="form-lastUpdatedDate" readonly style="background-color: #f5f5f5;">
+    </div>
+</div>
+
+<!-- Action Options (Initially Disabled) -->
+<div class="action-options" id="actionOptions" style="opacity: 0.5; pointer-events: none;">
+    <button class="action-btn repair" onclick="selectAction('repair')" id="repairBtn" disabled>
         <div class="action-icon">🔧</div>
         <div>Repair</div>
     </button>
     
-    <button class="action-btn training" onclick="selectAction('user_training')" id="trainingBtn">
+    <button class="action-btn training" onclick="selectAction('user_training')" id="trainingBtn" disabled>
         <div class="action-icon">📚</div>
         <div>User Training</div>
     </button>
     
-    <button class="action-btn maintenance" onclick="selectAction('one_time_service')" id="maintenanceBtn">
+    <button class="action-btn maintenance" onclick="selectAction('one_time_service')" id="maintenanceBtn" disabled>
         <div class="action-icon">⚙️</div>
         <div>One time service request</div>
     </button>
     
-    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn">
+    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn" disabled>
         <div class="action-icon">📊</div>
         <div>Consumer request</div>
     </button>
@@ -54,19 +97,99 @@
 <script>
 // Application state
 const currentEquipmentId = '{{ equipment_id }}';
-const hospital = `{{ hospital }}`;
-const unitCode = `{{ unit_code }}`;
-const serialNumber = `{{ serial_number }}`;
-const supplierName = `{{ supplier_name }}`;
-const unit = `{{ unit }}`;
-const itemId = `{{ item_id }}`;
+let hospital = `{{ hospital }}`;
+let unitCode = `{{ unit_code }}`;
+let serialNumber = `{{ serial_number }}`;
+let supplierName = `{{ supplier_name }}`;
+let unit = `{{ unit }}`;
+let itemId = `{{ item_id }}`;
+let masterDataLoaded = false;
+
+function fetchAndMapMasterData() {
+    const btn = document.getElementById('getMasterDataBtn');
+    const formSection = document.getElementById('masterDataForm');
+    const actionOptions = document.getElementById('actionOptions');
+
+    // Disable button while loading
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
+
+    showStatus('Fetching master data from API...', 'loading');
+
+    // Fetch master data from backend
+    fetch(`/api/get_master_data/${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Map the fetched data to form fields
+                document.getElementById('form-itemID').value = data.data.itemID || 'N/A';
+                document.getElementById('form-productLocation').value = data.data.productLocation || 'N/A';
+                document.getElementById('form-productModel').value = data.data.productModel || 'N/A';
+                document.getElementById('form-serialNumber').value = data.data.serialNumber || 'N/A';
+                document.getElementById('form-supplierName').value = data.data.supplierName || 'N/A';
+                document.getElementById('form-unit').value = data.data.unit || 'N/A';
+                document.getElementById('form-createdDate').value = data.data.createdDate || 'N/A';
+                document.getElementById('form-lastUpdatedDate').value = data.data.lastUpdatedDate || 'N/A';
+
+                // Update local variables with fetched data
+                hospital = data.data.productLocation || hospital;
+                unitCode = data.data.productModel || unitCode;
+                serialNumber = data.data.serialNumber || serialNumber;
+                supplierName = data.data.supplierName || supplierName;
+                unit = data.data.unit || unit;
+
+                // Show the form section
+                formSection.style.display = 'block';
+
+                // Enable action buttons
+                enableActionButtons();
+                masterDataLoaded = true;
+
+                // Update button to show success
+                btn.innerHTML = '<div class="action-icon">✓</div><div>Data Loaded</div>';
+                btn.style.backgroundColor = '#48bb78';
+
+                showStatus('Master data loaded successfully! You can now perform actions.', 'success');
+            } else {
+                showStatus(`Error: ${data.error}`, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showStatus(`Failed to fetch master data: ${error.message}`, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+        });
+}
+
+function enableActionButtons() {
+    const actionOptions = document.getElementById('actionOptions');
+    const actionBtns = document.querySelectorAll('.action-btn');
+    
+    // Enable the action section
+    actionOptions.style.opacity = '1';
+    actionOptions.style.pointerEvents = 'auto';
+    
+    // Enable all action buttons
+    actionBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.style.cursor = 'pointer';
+    });
+}
 
 function selectAction(action) {
+    if (!masterDataLoaded) {
+        showStatus('Please load master data first by clicking "Get Master Data" button', 'error');
+        return;
+    }
+
     const actionNames = {
         'repair': 'Repair',
-        'training': 'Training',
-        'maintenance': 'Maintenance',
-        'status': 'Status'
+        'user_training': 'User Training',
+        'one_time_service': 'One Time Service',
+        'consumer_request': 'Consumer Request'
     };
     
     const selectedAction = actionNames[action];
@@ -74,7 +197,7 @@ function selectAction(action) {
     // Disable all action buttons while processing
     disableActionButtons(true);
     
-    showStatus(`${selectedAction} selected for equipment ${currentEquipmentId}. Processing...`, 'loading');
+    showStatus(`${selectedAction} selected for equipment ${itemId}. Processing...`, 'loading');
     
     // Make API request to Flask backend
     fetch('/api/action', {
@@ -139,13 +262,15 @@ function disableSpecificButton(action) {
 function disableActionButtons(disable) {
     const actionBtns = document.querySelectorAll('.action-btn');
     actionBtns.forEach(btn => {
-        btn.disabled = disable;
-        if (disable) {
-            btn.style.cursor = 'not-allowed';
-            btn.style.opacity = '0.6';
-        } else {
-            btn.style.cursor = 'pointer';
-            btn.style.opacity = '1';
+        if (!btn.innerHTML.includes('✅')) { // Don't re-enable completed buttons
+            btn.disabled = disable;
+            if (disable) {
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '0.6';
+            } else {
+                btn.style.cursor = 'pointer';
+                btn.style.opacity = '1';
+            }
         }
     });
 }
@@ -157,13 +282,13 @@ function goBackToGenerator() {
 function showStatus(message, type) {
     const statusDiv = document.getElementById('statusMessage');
     let iconClass = '';
-    
+
     if (type === 'loading') {
         iconClass = '<div class="spinner"></div>';
     }
-    
+
     statusDiv.innerHTML = `<div class="status-message status-${type}">${iconClass}${message}</div>`;
-    
+
     if (type === 'success') {
         setTimeout(() => {
             statusDiv.innerHTML = '';

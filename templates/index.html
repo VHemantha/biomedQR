@@ -177,10 +177,10 @@ function generateOnlineQR(qrUrl, equipmentId) {
         qrContainer.appendChild(img);
         
         document.getElementById('qr-display').classList.remove('hidden');
-        document.getElementById('qr-equipment-id').textContent = itemId;
+        document.getElementById('qr-equipment-id').textContent = equipmentId;
         showStatus('QR Code generated successfully!', 'success');
         
-        currentEquipmentId = itemId;
+        currentEquipmentId = equipmentId;
     };
     
     img.onerror = function() {
@@ -229,10 +229,10 @@ function generateWithLibrary(qrUrl, equipmentId) {
                 showStatus('QR generation failed with library method. Try the Online QR method instead.', 'error');
             } else {
                 document.getElementById('qr-display').classList.remove('hidden');
-                document.getElementById('qr-equipment-id').textContent = itemId;
+                document.getElementById('qr-equipment-id').textContent = equipmentId;
                 showStatus('QR Code generated successfully using JS library!', 'success');
                 
-                currentEquipmentId = itemId;
+                currentEquipmentId = equipmentId;
             }
         });
     } catch (error) {

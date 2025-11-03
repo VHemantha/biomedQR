@@ -188,11 +188,63 @@ def handle_action():
         
         return jsonify({
             'success': True,
-            'message': f'{action.title()} request submitted successfully!',
+            'message': f'{action.replace("_", " ").title()} request submitted successfully!',
             'data': result
         })
         
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/get_master_data/<item_id>', methods=['GET'])
+def get_master_data(item_id):
+    """Fetch master data details by itemID with pagination"""
+    try:
+        token = get_access_token()
+        if not token:
+            return jsonify({'error': 'Failed to obtain access token'}), 500
+
+        # GET request to datatable endpoint with limit and offset parameters
+        response = requests.get(
+            f'{DATATABLE_ENDPOINT}?limit=100&offset=0',
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        )
+
+        if response.status_code == 200:
+            records = response.json()
+            print(f"Fetched {len(records)} records from API")
+            
+            # Filter records by itemID
+            matching_records = [r for r in records if r.get('itemID') == item_id]
+
+            if matching_records:
+                print(f"Found matching record for itemID: {item_id}")
+                # Return the first matching record
+                return jsonify({
+                    'success': True,
+                    'data': matching_records[0]
+                })
+            else:
+                print(f"No matching record found for itemID: {item_id}")
+                return jsonify({
+                    'success': False,
+                    'error': 'No record found with this Item ID'
+                }), 404
+        else:
+            print(f"API request failed: {response.status_code} - {response.text}")
+            return jsonify({
+                'success': False,
+                'error': f'API request failed: {response.status_code}'
+            }), response.status_code
+
+    except Exception as e:
+        print(f"Error in get_master_data: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -210,7 +262,7 @@ def generate_qr():
 
     if not hospital or not unit_code or not serial_number or not supplier_name or not unit:
         return jsonify({'error': 'Hospital, Model, Serial Number, Supplier Name, and Unit required'}), 400
-    
+
     # Create a datatable record using provided fields
     datatable_payload = {
         'itemID': item_id,
@@ -219,7 +271,7 @@ def generate_qr():
         'productType': '',             # no field provided; leaving empty
         'serialNumber': serial_number,
         'supplierName': supplier_name,
-        'unit': unit  # serial_number -> serialNumber
+        'unit': unit
     }
 
     try:
@@ -228,7 +280,7 @@ def generate_qr():
         # Log but do not block QR generation
         print(f"Failed to create datatable record: {str(e)}")
 
-    qr_url = url_for('equipment_actions', 
+    qr_url = url_for('equipment_actions',
                      item_id=item_id,
                      hospital=hospital,
                      unit_code=unit_code,
