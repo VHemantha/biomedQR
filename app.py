@@ -163,11 +163,11 @@ def handle_action():
 
         if action not in action_titles:
             return jsonify({'error': 'Invalid action'}), 400
-
+        userID  = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
         # API payload schema with contact number
         api_data = {
             'title': action_titles[action],
-            'userName': 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY',
+            'userName': userID,
             'currentDate': current_date,
             'productModel': unit_code,
             'serialNumber': serial_number,
