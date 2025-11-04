@@ -11,15 +11,13 @@
 
 <div class="welcome-section">
     <h2 class="welcome-title">Welcome to Equipment Portal</h2>
-    <p class="welcome-subtitle">Get master data to proceed:</p>
+    <p class="welcome-subtitle" id="welcomeSubtitle">Loading equipment data...</p>
 </div>
 
-<!-- Get Master Data Button -->
-<div style="text-align: center; margin: 30px 0;">
-    <button class="master-data-btn" onclick="fetchAndMapMasterData()" id="getMasterDataBtn">
-        <div class="action-icon">🔍</div>
-        <div>Get Master Data</div>
-    </button>
+<!-- Loading Indicator (Initially Visible) -->
+<div id="loadingIndicator" style="text-align: center; margin: 30px 0;">
+    <div class="spinner" style="margin: 0 auto;"></div>
+    <p style="margin-top: 10px; color: #667eea; font-weight: 600;">Fetching master data...</p>
 </div>
 
 <!-- Master Data Form Section (Initially Hidden) -->
@@ -113,14 +111,22 @@ let itemId = `{{ item_id }}`;
 let masterDataLoaded = false;
 let contactNumber = '';
 
+// Auto-fetch master data when page loads
+window.addEventListener('DOMContentLoaded', function() {
+    // Automatically fetch master data on page load
+    fetchAndMapMasterData();
+});
+
 function fetchAndMapMasterData() {
-    const btn = document.getElementById('getMasterDataBtn');
+    const loadingIndicator = document.getElementById('loadingIndicator');
     const formSection = document.getElementById('masterDataForm');
     const actionOptions = document.getElementById('actionOptions');
+    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
 
-    // Disable button while loading
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
+    // Show loading indicator
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+    }
 
     showStatus('Fetching master data from API...', 'loading');
 
@@ -151,29 +157,74 @@ function fetchAndMapMasterData() {
                 supplierName = data.data.supplierName || supplierName;
                 unit = data.data.unit || unit;
 
+                // Hide loading indicator
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+
                 // Show the form section
                 formSection.style.display = 'block';
+
+                // Update welcome subtitle
+                if (welcomeSubtitle) {
+                    welcomeSubtitle.textContent = 'Equipment details loaded. Please enter contact number and select an action:';
+                }
 
                 // Enable action buttons
                 enableActionButtons();
                 masterDataLoaded = true;
 
-                // Update button to show success
-                btn.innerHTML = '<div class="action-icon">✓</div><div>Data Loaded</div>';
-                btn.style.backgroundColor = '#48bb78';
-
                 showStatus('Master data loaded successfully! Please enter contact number and select an action.', 'success');
             } else {
+                // Hide loading indicator
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+
+                // Update welcome subtitle with error
+                if (welcomeSubtitle) {
+                    welcomeSubtitle.innerHTML = '<span style="color: #fc466b;">Failed to load equipment data</span>';
+                }
+
                 showStatus(`Error: ${data.error}`, 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+
+                // Show retry button
+                if (loadingIndicator) {
+                    loadingIndicator.innerHTML = `
+                        <button class="master-data-btn" onclick="fetchAndMapMasterData()" style="margin-top: 20px;">
+                            <div class="action-icon">🔄</div>
+                            <div>Retry Loading Data</div>
+                        </button>
+                    `;
+                    loadingIndicator.style.display = 'block';
+                }
             }
         })
         .catch(error => {
             console.error('Fetch error:', error);
+
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+
+            // Update welcome subtitle with error
+            if (welcomeSubtitle) {
+                welcomeSubtitle.innerHTML = '<span style="color: #fc466b;">Failed to load equipment data</span>';
+            }
+
             showStatus(`Failed to fetch master data: ${error.message}`, 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+
+            // Show retry button
+            if (loadingIndicator) {
+                loadingIndicator.innerHTML = `
+                    <button class="master-data-btn" onclick="fetchAndMapMasterData()" style="margin-top: 20px;">
+                        <div class="action-icon">🔄</div>
+                        <div>Retry Loading Data</div>
+                    </button>
+                `;
+                loadingIndicator.style.display = 'block';
+            }
         });
 }
 
@@ -194,7 +245,7 @@ function enableActionButtons() {
 
 function selectAction(action) {
     if (!masterDataLoaded) {
-        showStatus('Please load master data first by clicking "Get Master Data" button', 'error');
+        showStatus('Please wait for master data to load', 'error');
         return;
     }
 
