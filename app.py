@@ -255,15 +255,20 @@ def get_master_data(item_id):
 
 @app.route('/generate_qr')
 def generate_qr():
-    """Generate QR code URL - simplified to only use item_id"""
+    """Generate QR code URL - with item_id and serial_code"""
     item_id = request.args.get('item_id', '')
+    serial_code = request.args.get('serial_code', '')
 
     if not item_id:
         return jsonify({'error': 'Item ID is required'}), 400
+    
+    if not serial_code:
+        return jsonify({'error': 'Serial Code is required'}), 400
 
-    # Generate QR URL with only item_id
+    # Generate QR URL with item_id and serial_code
     qr_url = url_for('equipment_actions',
                      item_id=item_id,
+                     serial_code=serial_code,
                      _external=True)
     
     return jsonify({'qr_url': qr_url})

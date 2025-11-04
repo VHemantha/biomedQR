@@ -14,7 +14,10 @@
             <label for="item_id">Item ID:</label>
             <input type="text" id="item_id" placeholder="Enter Item ID" required>
         </div>
-        
+        <div class="form-group">
+            <label for="SerialCode">Serial Code:</label>
+            <input type="text" id="SerialCode" placeholder="Enter Serial Code" required>
+        </div>
         <div class="qr-methods">
             <div class="method-btn active" data-method="online">🌐 Online QR</div>
             <div class="method-btn" data-method="library">📚 JS Library</div>
@@ -31,7 +34,7 @@
         <p style="margin-top: 10px; color: #666; font-size: 14px;">
             📱 This QR code will open the equipment action menu
         </p>
-        <button class="btn" onclick="downloadQR()" style="margin-top: 15px;">⬇️ Download QR Code</button>
+        <button class="btn" onclick="downloadQR()" style="margin-top: 15px;">⬇️ Download QR Code with Serial Number</button>
     </div>
 </div>
 
@@ -42,6 +45,7 @@
 <script>
 // Application state
 let currentEquipmentId = '';
+let currentSerialCode = '';
 let selectedMethod = 'online';
 
 // Initialize on page load
@@ -62,15 +66,25 @@ function initializeMethodSelection() {
 
 function generateQR() {
     const itemId = document.getElementById('item_id').value.trim();
+    const serialCode = document.getElementById('SerialCode').value.trim();
     
     if (!itemId) {
         showStatus('Please enter an Item ID', 'error');
         return;
     }
     
+    if (!serialCode) {
+        showStatus('Please enter a Serial Code', 'error');
+        return;
+    }
+    
+    // Store serial code for later use
+    currentSerialCode = serialCode;
+    
     // Get QR URL from Flask backend
     const params = new URLSearchParams({
-        item_id: itemId
+        item_id: itemId,
+        serial_code: serialCode
     });
     
     fetch(`/generate_qr?${params.toString()}`)
@@ -103,6 +117,7 @@ function generateOnlineQR(qrUrl, equipmentId) {
     img.style.borderRadius = '12px';
     img.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
     img.style.maxWidth = '100%';
+    img.crossOrigin = 'anonymous'; // Enable CORS for canvas operations
     
     img.onload = function() {
         qrContainer.innerHTML = '';
@@ -179,23 +194,159 @@ function downloadQR() {
     const canvas = qrContainer.querySelector('canvas');
     const img = qrContainer.querySelector('img');
     
+    if (!currentSerialCode) {
+        showStatus('Serial Code is missing. Please regenerate the QR code.', 'error');
+        return;
+    }
+    
     if (canvas) {
-        // Download canvas QR code
-        const link = document.createElement('a');
-        link.download = `qr_${currentEquipmentId}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        showStatus('QR Code downloaded successfully!', 'success');
+        // Download canvas QR code with serial number
+        downloadCombinedImageFromCanvas(canvas);
     } else if (img) {
-        // For online QR, create a new link
-        const link = document.createElement('a');
-        link.download = `qr_${currentEquipmentId}.png`;
-        link.href = img.src;
-        link.target = '_blank';
-        link.click();
-        showStatus('QR Code download initiated!', 'success');
+        // For online QR, convert image to canvas first
+        downloadCombinedImageFromImg(img);
     } else {
         showStatus('No QR code available to download', 'error');
+    }
+}
+
+function downloadCombinedImageFromCanvas(qrCanvas) {
+    try {
+        // Create a new canvas for the combined image
+        const combinedCanvas = document.createElement('canvas');
+        const ctx = combinedCanvas.getContext('2d');
+        
+        // QR code dimensions
+        const qrWidth = qrCanvas.width;
+        const qrHeight = qrCanvas.height;
+        
+        // Serial number section height
+        const serialHeight = 80;
+        const padding = 20;
+        
+        // Set combined canvas size
+        combinedCanvas.width = qrWidth;
+        combinedCanvas.height = qrHeight + serialHeight;
+        
+        // Fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+        
+        // Draw QR code
+        ctx.drawImage(qrCanvas, 0, 0);
+        
+        // Draw serial number section
+        // Background for serial number
+        ctx.fillStyle = '#f7fafc';
+        ctx.fillRect(0, qrHeight, qrWidth, serialHeight);
+        
+        // Border line
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, qrHeight);
+        ctx.lineTo(qrWidth, qrHeight);
+        ctx.stroke();
+        
+        // Draw serial number text
+        ctx.fillStyle = '#2d3748';
+        ctx.font = 'bold 24px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Label
+        ctx.font = '16px Arial, sans-serif';
+        ctx.fillStyle = '#718096';
+        ctx.fillText('Serial Number:', qrWidth / 2, qrHeight + 25);
+        
+        // Serial Code
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.fillStyle = '#2d3748';
+        ctx.fillText(currentSerialCode, qrWidth / 2, qrHeight + 55);
+        
+        // Download the combined image
+        const link = document.createElement('a');
+        link.download = `qr_${currentEquipmentId}_${currentSerialCode}.png`;
+        link.href = combinedCanvas.toDataURL('image/png');
+        link.click();
+        
+        showStatus('QR Code with Serial Number downloaded successfully!', 'success');
+    } catch (error) {
+        console.error('Download error:', error);
+        showStatus('Failed to create combined image: ' + error.message, 'error');
+    }
+}
+
+function downloadCombinedImageFromImg(qrImg) {
+    try {
+        // Create a temporary canvas to convert the image
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        tempCanvas.width = qrImg.naturalWidth || 300;
+        tempCanvas.height = qrImg.naturalHeight || 300;
+        
+        // Draw the QR image on temp canvas
+        tempCtx.drawImage(qrImg, 0, 0);
+        
+        // Now create the combined image
+        const combinedCanvas = document.createElement('canvas');
+        const ctx = combinedCanvas.getContext('2d');
+        
+        // QR code dimensions
+        const qrWidth = tempCanvas.width;
+        const qrHeight = tempCanvas.height;
+        
+        // Serial number section height
+        const serialHeight = 80;
+        
+        // Set combined canvas size
+        combinedCanvas.width = qrWidth;
+        combinedCanvas.height = qrHeight + serialHeight;
+        
+        // Fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+        
+        // Draw QR code
+        ctx.drawImage(tempCanvas, 0, 0);
+        
+        // Draw serial number section
+        // Background for serial number
+        ctx.fillStyle = '#f7fafc';
+        ctx.fillRect(0, qrHeight, qrWidth, serialHeight);
+        
+        // Border line
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, qrHeight);
+        ctx.lineTo(qrWidth, qrHeight);
+        ctx.stroke();
+        
+        // Draw serial number text
+        // Label
+        ctx.font = '16px Arial, sans-serif';
+        ctx.fillStyle = '#718096';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Serial Number:', qrWidth / 2, qrHeight + 25);
+        
+        // Serial Code
+        ctx.font = 'bold 28px Arial, sans-serif';
+        ctx.fillStyle = '#2d3748';
+        ctx.fillText(currentSerialCode, qrWidth / 2, qrHeight + 55);
+        
+        // Download the combined image
+        const link = document.createElement('a');
+        link.download = `qr_${currentEquipmentId}_${currentSerialCode}.png`;
+        link.href = combinedCanvas.toDataURL('image/png');
+        link.click();
+        
+        showStatus('QR Code with Serial Number downloaded successfully!', 'success');
+    } catch (error) {
+        console.error('Download error:', error);
+        showStatus('Failed to create combined image. This might be due to CORS restrictions. Try using the JS Library method instead.', 'error');
     }
 }
 
