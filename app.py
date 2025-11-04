@@ -143,9 +143,13 @@ def handle_action():
         supplier_name = data.get('supplier_name') or ''
         unit = data.get('unit') or ''
         item_id = data.get('item_id') or ''
+        contact_number = data.get('contact_number') or ''  # Get contact number from request
         
         if not action or not equipment_id:
             return jsonify({'error': 'Missing action or equipment_id'}), 400
+        
+        if not contact_number:
+            return jsonify({'error': 'Contact number is required'}), 400
         
         current_date = datetime.now().strftime('%Y-%m-%d')
         
@@ -160,25 +164,24 @@ def handle_action():
         if action not in action_titles:
             return jsonify({'error': 'Invalid action'}), 400
 
-        # New API payload schema with requested mappings
+        # API payload schema with contact number
         api_data = {
             'title': action_titles[action],
             'userName': 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY',
             'currentDate': current_date,
-            'productModel': unit_code,          # map unit code -> productModel
-            'serialNumber': serial_number,      # map serial number -> serialNumber
-            'productLocation': hospital,        # map hospital -> productLocation
+            'productModel': unit_code,
+            'serialNumber': serial_number,
+            'productLocation': hospital,
             'hospital': hospital,
-            'requestType': action.replace('_', ' ').title(),          # replace underscores with spaces
-            'supplierName': supplier_name,      # add supplier name
-            'unit': unit,                       # add unit
-            'itemID': item_id,                  # add auto-generated item ID
+            'requestType': action.replace('_', ' ').title(),
+            'supplierName': supplier_name,
+            'unit': unit,
+            'itemID': item_id,
             'contactPerson': None,
-            'conactTel': None,
+            'conactTel': contact_number,  # Add contact number to API payload
             'installationDate': None,
             'productType': None,
             'warrantyExpireDate': None,
-            'supplierName': supplier_name,
             'unit1': unit,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }

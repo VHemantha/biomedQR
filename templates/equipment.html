@@ -65,6 +65,13 @@
         <label for="form-lastUpdatedDate">Last Updated Date:</label>
         <input type="text" id="form-lastUpdatedDate" readonly style="background-color: #f5f5f5;">
     </div>
+    
+    <!-- Contact Number - Editable Field -->
+    <div class="form-group">
+        <label for="form-contactNumber">Contact Number: <span style="color: #fc466b;">*</span></label>
+        <input type="tel" id="form-contactNumber" placeholder="Enter contact number" required style="background-color: #ffffff; border: 2px solid #667eea;">
+        <small style="color: #718096; font-size: 12px;">Required field - Please enter your contact number</small>
+    </div>
 </div>
 
 <!-- Action Options (Initially Disabled) -->
@@ -104,6 +111,7 @@ let supplierName = `{{ supplier_name }}`;
 let unit = `{{ unit }}`;
 let itemId = `{{ item_id }}`;
 let masterDataLoaded = false;
+let contactNumber = '';
 
 function fetchAndMapMasterData() {
     const btn = document.getElementById('getMasterDataBtn');
@@ -130,6 +138,11 @@ function fetchAndMapMasterData() {
                 document.getElementById('form-unit').value = data.data.unit || 'N/A';
                 document.getElementById('form-createdDate').value = data.data.createdDate || 'N/A';
                 document.getElementById('form-lastUpdatedDate').value = data.data.lastUpdatedDate || 'N/A';
+                
+                // Contact Number from API (if exists)
+                if (data.data.contactNumber) {
+                    document.getElementById('form-contactNumber').value = data.data.contactNumber;
+                }
 
                 // Update local variables with fetched data
                 hospital = data.data.productLocation || hospital;
@@ -149,7 +162,7 @@ function fetchAndMapMasterData() {
                 btn.innerHTML = '<div class="action-icon">✓</div><div>Data Loaded</div>';
                 btn.style.backgroundColor = '#48bb78';
 
-                showStatus('Master data loaded successfully! You can now perform actions.', 'success');
+                showStatus('Master data loaded successfully! Please enter contact number and select an action.', 'success');
             } else {
                 showStatus(`Error: ${data.error}`, 'error');
                 btn.disabled = false;
@@ -185,6 +198,20 @@ function selectAction(action) {
         return;
     }
 
+    // Get contact number from the input field
+    contactNumber = document.getElementById('form-contactNumber').value.trim();
+    
+    // Validate contact number
+    if (!contactNumber) {
+        showStatus('Please enter a contact number before submitting a request', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    // Reset border color
+    document.getElementById('form-contactNumber').style.borderColor = '#667eea';
+
     const actionNames = {
         'repair': 'Repair',
         'user_training': 'User Training',
@@ -213,7 +240,8 @@ function selectAction(action) {
             serial_number: serialNumber,
             supplier_name: supplierName,
             unit: unit,
-            item_id: itemId
+            item_id: itemId,
+            contact_number: contactNumber  // Send contact number
         })
     })
     .then(response => response.json())
