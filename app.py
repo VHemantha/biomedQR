@@ -339,9 +339,7 @@ def submit_rating(item_id):
         
         # Prepare PUT request payload
         update_payload = {
-            'rating': rating,
-            'ratingComments': comments,
-            'ratedAt': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+            'rating': rating
         }
         
         print(f"📤 Sending PUT request to update record {record_id}")
