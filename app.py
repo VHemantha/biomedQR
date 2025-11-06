@@ -319,11 +319,14 @@ def submit_rating(item_id):
         print(f"Rating: {rating}")
         print(f"Comments: {comments}")
         print(f"Item ID: {item_id}")
-        
-        if not rating or rating < 1 or rating > 5:
+
+        # Valid rating text values
+        valid_ratings = ['Highly Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Highly Satisfied']
+
+        if not rating or rating not in valid_ratings:
             return jsonify({
                 'success': False,
-                'error': 'Invalid rating. Must be between 1 and 5.'
+                'error': f'Invalid rating. Must be one of: {", ".join(valid_ratings)}'
             }), 400
         
         # Get access token
