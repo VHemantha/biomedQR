@@ -282,5 +282,129 @@ def generate_qr():
     
     return jsonify({'qr_url': qr_url})
 
+# Add this new route for the rating page
+@app.route('/rating/<item_id>')
+def rating_page(item_id):
+    """Rating page for completed services"""
+    print("=" * 60)
+    print("⭐ RATING PAGE ACCESSED")
+    print(f"Item ID: {item_id}")
+    print("=" * 60)
+    
+    return render_template('rating.html', item_id=item_id)
+
+# Add this new route to handle rating submission
+@app.route('/api/submit_rating/<item_id>', methods=['PUT'])
+def submit_rating(item_id):
+    """Submit rating using item_id instead of record_id"""
+    # First, fetch the record to get its actual ID
+    token = get_access_token()
+    response = requests.get(
+        f'{DATATABLE_ENDPOINT}',
+        headers={'Authorization': f'Bearer {token}'}
+    )
+    
+    records = response.json()
+    matching = [r for r in records if r.get('itemID') == item_id]
+    
+    if matching:
+        record_id = matching[0].get('id')  # Get the actual record ID
+    
+    try:
+        data = request.get_json()
+        rating = data.get('rating')
+        comments = data.get('comments', '')
+        item_id = data.get('item_id', '')
+        
+        print(f"Rating: {rating}")
+        print(f"Comments: {comments}")
+        print(f"Item ID: {item_id}")
+        
+        if not rating or rating < 1 or rating > 5:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid rating. Must be between 1 and 5.'
+            }), 400
+        
+        # Get access token
+        token = get_access_token()
+        if not token:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to obtain access token'
+            }), 500
+        
+        # Prepare PUT request payload
+        update_payload = {
+            'rating': rating,
+            'ratingComments': comments,
+            'ratedAt': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+        }
+        
+        print(f"📤 Sending PUT request to update record {record_id}")
+        print(f"Payload: {json.dumps(update_payload, indent=2)}")
+        
+        # Make PUT request to update the record
+        update_url = f'{DATATABLE_ENDPOINT}/{record_id}'
+        response = requests.put(
+            update_url,
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            json=update_payload,
+            timeout=10
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        print(f"Response Body: {response.text}")
+        
+        if response.status_code in [200, 201, 204]:
+            print("✅ Rating updated successfully")
+            print("=" * 60)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Rating submitted successfully!',
+                'data': {
+                    'rating': rating,
+                    'comments': comments,
+                    'record_id': record_id
+                }
+            })
+        else:
+            error_msg = f"API returned status {response.status_code}"
+            try:
+                error_data = response.json()
+                error_msg = error_data.get('message') or error_data.get('error') or error_msg
+            except:
+                pass
+            
+            print(f"❌ Update failed: {error_msg}")
+            print("=" * 60)
+            
+            return jsonify({
+                'success': False,
+                'error': error_msg
+            }), response.status_code
+            
+    except requests.exceptions.Timeout:
+        print("❌ Request timeout")
+        print("=" * 60)
+        return jsonify({
+            'success': False,
+            'error': 'Request timeout - API took too long to respond'
+        }), 500
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("=" * 60)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

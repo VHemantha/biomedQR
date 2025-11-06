@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}Rate Your Service - {{ item_id }}{% endblock %}
+
+{% block content %}
+<div class="rating-container">
+    <div class="rating-header">
+        <h1>⭐ Rate Your Service Experience</h1>
+        <p class="subtitle">Your feedback helps us improve our service quality</p>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" style="text-align: center; margin: 40px 0;">
+        <div class="spinner" style="display: inline-block; width: 50px; height: 50px;"></div>
+        <p style="color: #667eea; margin-top: 15px; font-size: 18px;">Loading service details...</p>
+    </div>
+
+    <!-- Main Content (Initially Hidden) -->
+    <div id="ratingContent" style="display: none;">
+        <!-- Equipment Details Card -->
+        <div class="equipment-details-card">
+            <h2>📋 Service Details</h2>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Item ID:</span>
+                    <span class="detail-value" id="display-itemID">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Hospital:</span>
+                    <span class="detail-value" id="display-hospital">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Product Model:</span>
+                    <span class="detail-value" id="display-productModel">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Serial Number:</span>
+                    <span class="detail-value" id="display-serialNumber">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Supplier:</span>
+                    <span class="detail-value" id="display-supplier">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Service Date:</span>
+                    <span class="detail-value" id="display-serviceDate">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Section -->
+        <div class="rating-section">
+            <h2>How satisfied are you with the service?</h2>
+            <p class="rating-instruction">Click on the stars to rate your experience</p>
+            
+            <!-- Star Rating -->
+            <div class="star-rating" id="starRating">
+                <span class="star" data-rating="1">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </span>
+                <span class="star" data-rating="2">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </span>
+                <span class="star" data-rating="3">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </span>
+                <span class="star" data-rating="4">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </span>
+                <span class="star" data-rating="5">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </span>
+            </div>
+
+            <!-- Rating Label -->
+            <div class="rating-label" id="ratingLabel">
+                <span class="rating-emoji" id="ratingEmoji">😐</span>
+                <span class="rating-text" id="ratingText">Select a rating</span>
+            </div>
+
+            <!-- Optional Comments -->
+            <div class="comments-section">
+                <label for="comments">Additional Comments (Optional):</label>
+                <textarea id="comments" rows="4" placeholder="Tell us more about your experience..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="submit-rating-btn" id="submitRatingBtn" onclick="submitRating()" disabled>
+                Submit Rating
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Message (Initially Hidden) -->
+    <div id="successMessage" style="display: none; text-align: center; padding: 40px;">
+        <div style="font-size: 80px; margin-bottom: 20px;">✅</div>
+        <h2 style="color: #48bb78; margin-bottom: 15px;">Thank You!</h2>
+        <p style="color: #4a5568; font-size: 18px;">Your rating has been submitted successfully.</p>
+        <p style="color: #718096; margin-top: 20px;">We appreciate your feedback!</p>
+    </div>
+
+    <div id="statusMessage"></div>
+</div>
+
+<style>
+.rating-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.rating-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.rating-header h1 {
+    color: #667eea;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #718096;
+    font-size: 1.1em;
+}
+
+.equipment-details-card {
+    background: #f7fafc;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-details-card h2 {
+    color: #2d3748;
+    margin-bottom: 25px;
+    font-size: 1.5em;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 0.9em;
+    color: #718096;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    font-size: 1.1em;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.rating-section {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.rating-section h2 {
+    color: #2d3748;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+}
+
+.rating-instruction {
+    color: #718096;
+    margin-bottom: 30px;
+}
+
+.star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.star {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #e2e8f0;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+    transform: scale(1.1);
+}
+
+.star svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.rating-label {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f7fafc;
+    border-radius: 10px;
+}
+
+.rating-emoji {
+    font-size: 3em;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.rating-text {
+    font-size: 1.3em;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.comments-section {
+    margin: 30px 0;
+    text-align: left;
+}
+
+.comments-section label {
+    display: block;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.comments-section textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1em;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.3s;
+}
+
+.comments-section textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.submit-rating-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 50px;
+    font-size: 1.2em;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    margin-top: 20px;
+}
+
+.submit-rating-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.submit-rating-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .star-rating {
+        gap: 5px;
+    }
+    
+    .star svg {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ============================================
+// APPLICATION STATE
+// ============================================
+const itemId = '{{ item_id }}';
+let selectedRating = 0;
+let recordId = null;
+let equipmentData = null;
+
+// Rating configurations
+const ratingConfig = {
+    1: { emoji: '😞', text: 'Highly Dissatisfied', color: '#fc466b' },
+    2: { emoji: '😕', text: 'Dissatisfied', color: '#ff8c42' },
+    3: { emoji: '😐', text: 'Neutral', color: '#fbbf24' },
+    4: { emoji: '😊', text: 'Satisfied', color: '#48bb78' },
+    5: { emoji: '😍', text: 'Highly Satisfied', color: '#38b2ac' }
+};
+
+// ============================================
+// PAGE INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('⭐ Rating Page Initialized');
+    console.log('Item ID:', itemId);
+    
+    // Initialize star rating listeners
+    initializeStarRating();
+    
+    // Fetch equipment data
+    fetchEquipmentData();
+});
+
+// ============================================
+// INITIALIZE STAR RATING
+// ============================================
+function initializeStarRating() {
+    const stars = document.querySelectorAll('.star');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            setRating(rating);
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            highlightStars(rating);
+        });
+    });
+    
+    // Reset on mouse leave
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        highlightStars(selectedRating);
+    });
+}
+
+function setRating(rating) {
+    selectedRating = rating;
+    highlightStars(rating);
+    updateRatingLabel(rating);
+    
+    // Enable submit button
+    document.getElementById('submitRatingBtn').disabled = false;
+    
+    console.log('Rating selected:', rating);
+}
+
+function highlightStars(rating) {
+    const stars = document.querySelectorAll('.star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+function updateRatingLabel(rating) {
+    const config = ratingConfig[rating];
+    if (config) {
+        document.getElementById('ratingEmoji').textContent = config.emoji;
+        document.getElementById('ratingText').textContent = config.text;
+        document.getElementById('ratingLabel').style.borderLeft = `5px solid ${config.color}`;
+    }
+}
+
+// ============================================
+// FETCH EQUIPMENT DATA
+// ============================================
+function fetchEquipmentData() {
+    console.log('📡 Fetching equipment data for Item ID:', itemId);
+    
+    if (!itemId || itemId === '' || itemId === 'None') {
+        showStatus('❌ Invalid Item ID', 'error');
+        document.getElementById('loadingIndicator').style.display = 'none';
+        return;
+    }
+    
+    fetch(`/api/get_master_data/${encodeURIComponent(itemId)}`)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📦 Equipment data received:', data);
+            
+            if (data.success && data.data) {
+                equipmentData = data.data;
+                recordId = data.data.id; // Get the record ID for PUT request
+                
+                console.log('✅ Record ID:', recordId);
+                
+                // Display equipment details
+                displayEquipmentDetails(data.data);
+                
+                // Hide loading, show content
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('ratingContent').style.display = 'block';
+                
+            } else {
+                throw new Error(data.error || 'Failed to fetch equipment data');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Fetch error:', error);
+            showStatus(`❌ Error: ${error.message}`, 'error');
+            document.getElementById('loadingIndicator').style.display = 'none';
+        });
+}
+
+function displayEquipmentDetails(data) {
+    document.getElementById('display-itemID').textContent = data.itemID || '-';
+    document.getElementById('display-hospital').textContent = data.productLocation || '-';
+    document.getElementById('display-productModel').textContent = data.productModel || '-';
+    document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
+    document.getElementById('display-supplier').textContent = data.supplierName || '-';
+    
+    // Display last updated date as service date
+    const serviceDate = data.lastUpdatedDate || data.createdDate || '-';
+    document.getElementById('display-serviceDate').textContent = serviceDate;
+    
+    console.log('✅ Equipment details displayed');
+}
+
+// ============================================
+// SUBMIT RATING
+// ============================================
+function submitRating() {
+    if (selectedRating === 0) {
+        showStatus('⚠️ Please select a rating', 'error');
+        return;
+    }
+    
+    if (!recordId) {
+        showStatus('❌ Record ID not found. Cannot submit rating.', 'error');
+        return;
+    }
+    
+    const comments = document.getElementById('comments').value.trim();
+    
+    console.log('📤 Submitting rating...');
+    console.log('Rating:', selectedRating);
+    console.log('Comments:', comments);
+    console.log('Record ID:', recordId);
+    
+    // Disable submit button
+    const btn = document.getElementById('submitRatingBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="display: inline-block; width: 20px; height: 20px; margin-right: 10px;"></div>Submitting...';
+    
+    showStatus('⏳ Submitting your rating...', 'loading');
+    
+    // Make PUT request to update rating
+    fetch(`/api/submit_rating/${recordId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            rating: selectedRating,
+            comments: comments,
+            item_id: itemId
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('📦 Response:', data);
+        
+        if (data.success) {
+            console.log('✅ Rating submitted successfully');
+            
+            // Hide rating content
+            document.getElementById('ratingContent').style.display = 'none';
+            
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            
+            showStatus('✅ Thank you for your feedback!', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to submit rating');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Submit error:', error);
+        showStatus(`❌ Error: ${error.message}`, 'error');
+        
+        // Re-enable button
+        btn.disabled = false;
+        btn.innerHTML = 'Submit Rating';
+    });
+}
+
+function showStatus(message, type) {
+    const statusDiv = document.getElementById('statusMessage');
+    let iconClass = '';
+
+    if (type === 'loading') {
+        iconClass = '<div class="spinner"></div>';
+    }
+
+    statusDiv.innerHTML = `<div class="status-message status-${type}">${iconClass}${message}</div>`;
+
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    } else if (type === 'error') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 10000);
+    }
+}
+</script>
+{% endblock %}
