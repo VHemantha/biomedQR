@@ -11,27 +11,15 @@
 
 <div class="welcome-section">
     <h2 class="welcome-title">Welcome to Equipment Portal</h2>
-    <p class="welcome-subtitle">Scan QR/Barcode or click button to load data:</p>
+    <p class="welcome-subtitle">Get master data to proceed:</p>
 </div>
 
-<!-- Manual Fetch Button (Optional - for manual trigger) -->
-<div style="text-align: center; margin: 20px 0;">
-    <button class="master-data-btn" id="getMasterDataBtn" onclick="fetchAndMapMasterData()">
-        <span>📋</span>
-        <span>Get Master Data</span>
+<!-- Get Master Data Button -->
+<div style="text-align: center; margin: 30px 0;">
+    <button class="master-data-btn" onclick="fetchAndMapMasterData()" id="getMasterDataBtn">
+        <div class="action-icon">🔍</div>
+        <div>Get Master Data</div>
     </button>
-</div>
-
-<!-- Scanning Status Indicator -->
-<div id="scanningIndicator" class="scanning-indicator" style="display: none; text-align: center; margin: 20px 0; padding: 15px; background-color: #e6fffa; border-left: 4px solid #38b6a8; border-radius: 4px;">
-    <div class="spinner" style="display: inline-block; margin-right: 10px;"></div>
-    <span id="scanningText" style="color: #38b6a8; font-weight: 500;">Scanning QR/Barcode... Auto-fetching data</span>
-</div>
-
-<!-- Waiting for Scan Message -->
-<div id="waitingForScan" style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f0f4ff; border-radius: 8px; border: 2px dashed #667eea;">
-    <div style="font-size: 18px; color: #667eea; font-weight: 500;">📱 Ready for Scan</div>
-    <p style="color: #718096; margin-top: 10px;">Please scan the QR code or barcode to auto-load equipment data</p>
 </div>
 
 <!-- Master Data Form Section (Initially Hidden) -->
@@ -44,17 +32,12 @@
     </div>
     
     <div class="form-group">
-        <label for="form-area">Area:</label>
-        <input type="text" id="form-area" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
         <label for="form-productLocation">Hospital / Location:</label>
         <input type="text" id="form-productLocation" readonly style="background-color: #f5f5f5;">
     </div>
     
     <div class="form-group">
-        <label for="form-productModel">Modality (Product Model):</label>
+        <label for="form-productModel">Product Model:</label>
         <input type="text" id="form-productModel" readonly style="background-color: #f5f5f5;">
     </div>
     
@@ -69,7 +52,7 @@
     </div>
     
     <div class="form-group">
-        <label for="form-unit">Location (Unit):</label>
+        <label for="form-unit">Unit:</label>
         <input type="text" id="form-unit" readonly style="background-color: #f5f5f5;">
     </div>
     
@@ -127,270 +110,70 @@ let serialNumber = `{{ serial_number }}`;
 let supplierName = `{{ supplier_name }}`;
 let unit = `{{ unit }}`;
 let itemId = `{{ item_id }}`;
-let area = '';
 let masterDataLoaded = false;
 let contactNumber = '';
-let autoScannedData = false;
-let scanBuffer = '';
-let scanTimeout = null;
-const SCAN_TIMEOUT = 100; // milliseconds to wait for scan completion
-const MIN_SCAN_LENGTH = 4;
-const MAX_SCAN_LENGTH = 50;
 
-// Initialize auto-scan detection on page load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded - Initializing scan detection');
-    initializeScanDetection();
-    
-    // Optional: Auto-fetch data if itemId is already available (from URL params)
-    if (itemId && itemId.trim() !== '') {
-        console.log('Item ID found in URL, auto-fetching data...');
-        setTimeout(() => {
-            fetchAndMapMasterData();
-        }, 500);
-    }
-});
-
-// Initialize barcode/QR scan detection
-function initializeScanDetection() {
-    let localScanBuffer = '';
-    let localIsScanning = false;
-    let localScanTimeout = null;
-
-    console.log('Scan detection initialized');
-
-    // Listen for keyboard input (barcode scanners emit keyboard events)
-    document.addEventListener('keydown', function(event) {
-        // Ignore if user is typing in an input/textarea field
-        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-            return;
-        }
-
-        // Start scan detection
-        if (!localIsScanning) {
-            localIsScanning = true;
-            localScanBuffer = '';
-            showScanningIndicator(true);
-            console.log('Scan started');
-        }
-
-        // Clear existing timeout
-        if (localScanTimeout) {
-            clearTimeout(localScanTimeout);
-        }
-
-        // Accumulate characters (only single characters, ignore special keys)
-        if (event.key.length === 1) {
-            localScanBuffer += event.key;
-            console.log('Scan buffer:', localScanBuffer);
-            
-            // Prevent buffer overflow
-            if (localScanBuffer.length > MAX_SCAN_LENGTH) {
-                console.log('Buffer overflow, resetting');
-                resetScan();
-                return;
-            }
-        }
-
-        // Detect scan completion (Enter key marks end of scan)
-        if (event.key === 'Enter' && localScanBuffer.length >= MIN_SCAN_LENGTH) {
-            event.preventDefault();
-            console.log('Scan completed with Enter key:', localScanBuffer);
-            handleScanComplete(localScanBuffer.trim());
-            resetScan();
-            return;
-        }
-
-        // Set timeout to detect scan end if no Enter key
-        localScanTimeout = setTimeout(() => {
-            if (localScanBuffer.length >= MIN_SCAN_LENGTH) {
-                console.log('Scan completed by timeout:', localScanBuffer);
-                handleScanComplete(localScanBuffer.trim());
-            }
-            resetScan();
-        }, SCAN_TIMEOUT);
-    });
-    
-    function resetScan() {
-        localScanBuffer = '';
-        localIsScanning = false;
-        showScanningIndicator(false);
-        if (localScanTimeout) {
-            clearTimeout(localScanTimeout);
-            localScanTimeout = null;
-        }
-        console.log('Scan reset');
-    }
-}
-
-// Show/hide scanning indicator
-function showScanningIndicator(show) {
-    const indicator = document.getElementById('scanningIndicator');
-    const waitingMessage = document.getElementById('waitingForScan');
-    
-    if (show) {
-        indicator.style.display = 'block';
-        if (waitingMessage) waitingMessage.style.display = 'none';
-    } else {
-        setTimeout(() => {
-            indicator.style.display = 'none';
-            if (waitingMessage && !masterDataLoaded) {
-                waitingMessage.style.display = 'block';
-            }
-        }, 500);
-    }
-}
-
-// Handle scan completion - AUTOMATICALLY FETCH DATA
-function handleScanComplete(scannedData) {
-    console.log('Processing scanned data:', scannedData);
-    
-    // Parse scanned data - could be Item ID or Serial Code
-    // Try to extract equipment ID format (e.g., "EQ12345" or just numbers)
-    const equipmentIdMatch = scannedData.match(/([A-Z]{2,}\d+|\d{4,})/i);
-    
-    if (equipmentIdMatch || scannedData.length >= MIN_SCAN_LENGTH) {
-        autoScannedData = true;
-        
-        // Update itemId if we found a valid ID
-        if (equipmentIdMatch) {
-            itemId = equipmentIdMatch[0];
-            console.log('Extracted Item ID:', itemId);
-        } else {
-            itemId = scannedData; // Use the whole scanned string
-            console.log('Using full scan as Item ID:', itemId);
-        }
-        
-        // Hide waiting message
-        const waitingMessage = document.getElementById('waitingForScan');
-        if (waitingMessage) {
-            waitingMessage.style.display = 'none';
-        }
-        
-        // Automatically fetch master data
-        console.log('Triggering automatic data fetch...');
-        fetchAndMapMasterData();
-    } else {
-        console.log('Scanned data too short or invalid format');
-        showStatus('Invalid scan - please try again', 'error');
-    }
-}
-
-// Fetch master data from API and map to form fields
 function fetchAndMapMasterData() {
     const btn = document.getElementById('getMasterDataBtn');
     const formSection = document.getElementById('masterDataForm');
     const actionOptions = document.getElementById('actionOptions');
-    const waitingMessage = document.getElementById('waitingForScan');
-
-    // Validate itemId
-    if (!itemId || itemId.trim() === '') {
-        showStatus('Item ID is missing. Please scan the QR code or enter manually.', 'error');
-        return;
-    }
 
     // Disable button while loading
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
-    }
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
 
-    const source = autoScannedData ? 'auto-scan' : 'manual';
-    showStatus(`Fetching master data for Item ID: ${itemId} (${source})...`, 'loading');
-    console.log(`Fetching data for Item ID: ${itemId}`);
-
-    // Hide waiting message
-    if (waitingMessage) {
-        waitingMessage.style.display = 'none';
-    }
+    showStatus('Fetching master data from API...', 'loading');
 
     // Fetch master data from backend
-    fetch(`/api/get_master_data/${encodeURIComponent(itemId)}`)
-        .then(response => {
-            console.log('API Response Status:', response.status);
-            return response.json();
-        })
+    fetch(`/api/get_master_data/${itemId}`)
+        .then(response => response.json())
         .then(data => {
-            console.log('API Response Data:', data);
-            
             if (data.success) {
-                // Map API response to form fields with proper field mapping
-                const apiData = data.data;
+                // Map the fetched data to form fields
+                document.getElementById('form-itemID').value = data.data.itemID || 'N/A';
+                document.getElementById('form-productLocation').value = data.data.productLocation || 'N/A';
+                document.getElementById('form-productModel').value = data.data.productModel || 'N/A';
+                document.getElementById('form-serialNumber').value = data.data.serialNumber || 'N/A';
+                document.getElementById('form-supplierName').value = data.data.supplierName || 'N/A';
+                document.getElementById('form-unit').value = data.data.unit || 'N/A';
+                document.getElementById('form-createdDate').value = data.data.createdDate || 'N/A';
+                document.getElementById('form-lastUpdatedDate').value = data.data.lastUpdatedDate || 'N/A';
                 
-                // Field Mapping: API Key -> HTML Field ID
-                document.getElementById('form-itemID').value = apiData.itemID || 'N/A';
-                document.getElementById('form-area').value = apiData.area || 'N/A';
-                document.getElementById('form-productLocation').value = apiData.productLocation || 'N/A'; // Hospital
-                document.getElementById('form-productModel').value = apiData.productModel || 'N/A'; // Modality
-                document.getElementById('form-serialNumber').value = apiData.serialNumber || 'N/A';
-                document.getElementById('form-supplierName').value = apiData.supplierName || 'N/A';
-                document.getElementById('form-unit').value = apiData.unit || 'N/A'; // Location
-                document.getElementById('form-createdDate').value = apiData.createdDate || 'N/A';
-                document.getElementById('form-lastUpdatedDate').value = apiData.lastUpdatedDate || 'N/A';
-                
-                // Pre-fill contact number if available from API
-                if (apiData.contactNumber) {
-                    document.getElementById('form-contactNumber').value = apiData.contactNumber;
+                // Contact Number from API (if exists)
+                if (data.data.contactNumber) {
+                    document.getElementById('form-contactNumber').value = data.data.contactNumber;
                 }
 
                 // Update local variables with fetched data
-                area = apiData.area || '';
-                hospital = apiData.productLocation || hospital;
-                unitCode = apiData.productModel || unitCode;
-                serialNumber = apiData.serialNumber || serialNumber;
-                supplierName = apiData.supplierName || supplierName;
-                unit = apiData.unit || unit;
+                hospital = data.data.productLocation || hospital;
+                unitCode = data.data.productModel || unitCode;
+                serialNumber = data.data.serialNumber || serialNumber;
+                supplierName = data.data.supplierName || supplierName;
+                unit = data.data.unit || unit;
 
-                // Show the form section with animation
+                // Show the form section
                 formSection.style.display = 'block';
-                formSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
                 // Enable action buttons
                 enableActionButtons();
                 masterDataLoaded = true;
 
-                const message = autoScannedData 
-                    ? '✅ Master data auto-loaded from scan! Please enter contact number and select an action.'
-                    : '✅ Master data loaded successfully! Please enter contact number and select an action.';
-                showStatus(message, 'success');
-                
-                // Reset button
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>📋</span><span>Get Master Data</span>';
-                }
-                
-                console.log('Data mapping completed successfully');
+                // Update button to show success
+                btn.innerHTML = '<div class="action-icon">✓</div><div>Data Loaded</div>';
+                btn.style.backgroundColor = '#48bb78';
+
+                showStatus('Master data loaded successfully! Please enter contact number and select an action.', 'success');
             } else {
-                showStatus(`❌ Error: ${data.error}`, 'error');
-                console.error('API Error:', data.error);
-                
-                // Re-enable button
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>📋</span><span>Get Master Data</span>';
-                }
-                
-                // Show waiting message again
-                if (waitingMessage) {
-                    waitingMessage.style.display = 'block';
-                }
+                showStatus(`Error: ${data.error}`, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
             }
         })
         .catch(error => {
             console.error('Fetch error:', error);
-            showStatus(`❌ Failed to fetch master data: ${error.message}`, 'error');
-            
-            // Re-enable button
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<span>📋</span><span>Get Master Data</span>';
-            }
-            
-            // Show waiting message again
-            if (waitingMessage) {
-                waitingMessage.style.display = 'block';
-            }
+            showStatus(`Failed to fetch master data: ${error.message}`, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
         });
 }
 
@@ -407,13 +190,11 @@ function enableActionButtons() {
         btn.disabled = false;
         btn.style.cursor = 'pointer';
     });
-    
-    console.log('Action buttons enabled');
 }
 
 function selectAction(action) {
     if (!masterDataLoaded) {
-        showStatus('⚠️ Please load master data first', 'error');
+        showStatus('Please load master data first by clicking "Get Master Data" button', 'error');
         return;
     }
 
@@ -422,7 +203,7 @@ function selectAction(action) {
     
     // Validate contact number
     if (!contactNumber) {
-        showStatus('⚠️ Please enter a contact number before submitting a request', 'error');
+        showStatus('Please enter a contact number before submitting a request', 'error');
         document.getElementById('form-contactNumber').focus();
         document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
         return;
@@ -444,7 +225,6 @@ function selectAction(action) {
     disableActionButtons(true);
     
     showStatus(`${selectedAction} selected for equipment ${itemId}. Processing...`, 'loading');
-    console.log('Submitting action:', action);
     
     // Make API request to Flask backend
     fetch('/api/action', {
@@ -455,30 +235,28 @@ function selectAction(action) {
         body: JSON.stringify({
             action: action,
             equipment_id: currentEquipmentId,
-            area: area,
             hospital: hospital,
             unit_code: unitCode,
             serial_number: serialNumber,
             supplier_name: supplierName,
             unit: unit,
             item_id: itemId,
-            contact_number: contactNumber
+            contact_number: contactNumber  // Send contact number
         })
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Action response:', data);
         if (data.success) {
-            showStatus(`✅ ${data.message}`, 'success');
+            showStatus(data.message, 'success');
             // Disable the specific button that was clicked
             disableSpecificButton(action);
         } else {
-            showStatus(`❌ Failed: ${data.error}`, 'error');
+            showStatus(`Failed: ${data.error}`, 'error');
         }
     })
     .catch(error => {
         console.error('Action error:', error);
-        showStatus(`❌ Failed to submit ${selectedAction.toLowerCase()} request: ${error.message}`, 'error');
+        showStatus(`Failed to submit ${selectedAction.toLowerCase()} request: ${error.message}`, 'error');
     })
     .finally(() => {
         disableActionButtons(false);
@@ -486,6 +264,7 @@ function selectAction(action) {
 }
 
 function disableSpecificButton(action) {
+    // Map action to button ID
     const actionToButtonId = {
         'repair': 'repairBtn',
         'user_training': 'trainingBtn',
