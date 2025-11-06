@@ -6,92 +6,95 @@
 <button class="back-btn" onclick="goBackToGenerator()">← Back to Generator</button>
 
 <div class="equipment-info">
-    🏭 Item: <span style="color: #667eea;">{{ equipment_id }}</span>
+    🏭 Item: <span style="color: #667eea;">{{ equipment_id }}</span>
 </div>
 
 <div class="welcome-section">
-    <h2 class="welcome-title">Welcome to Equipment Portal</h2>
-    <p class="welcome-subtitle" id="welcomeSubtitle">Loading equipment data...</p>
+    <h2 class="welcome-title">Welcome to Equipment Portal</h2>
+    <p class="welcome-subtitle">Get master data to proceed:</p>
 </div>
 
-<div id="loadingIndicator" style="text-align: center; margin: 30px 0;">
-    <div class="spinner" style="margin: 0 auto;"></div>
-    <p style="margin-top: 10px; color: #667eea; font-weight: 600;">Fetching master data...</p>
+<!-- Get Master Data Button -->
+<div style="text-align: center; margin: 30px 0;">
+    <button class="master-data-btn" onclick="fetchAndMapMasterData()" id="getMasterDataBtn">
+        <div class="action-icon">🔍</div>
+        <div>Get Master Data</div>
+    </button>
 </div>
 
+<!-- Master Data Form Section (Initially Hidden) -->
 <div id="masterDataForm" class="master-data-form" style="display: none;">
-    <h3 style="color: #667eea; margin-bottom: 20px;">Equipment Details</h3>
-    
-    <div class="form-group">
-        <label for="form-itemID">Item ID:</label>
-        <input type="text" id="form-itemID" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
-        <label for="form-productHospital">Hospital:</label>
-                <input type="text" id="form-productHospital" readonly style="background-color: #f5f5f5;">
-    </div>
-    <div class="form-group">
-        <label for="form-productLocation">Location:</label>
-                <input type="text" id="form-productLocation" readonly style="background-color: #f5f5f5;">
-    </div>
-    <div class="form-group">
-        <label for="form-productModel">Product Model:</label>
-        <input type="text" id="form-productModel" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
-        <label for="form-serialNumber">Serial Number:</label>
-        <input type="text" id="form-serialNumber" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
-        <label for="form-supplierName">Supplier Name:</label>
-        <input type="text" id="form-supplierName" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
-        <label for="form-unit">Unit:</label>
-        <input type="text" id="form-unit" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
-        <label for="form-createdDate">Created Date:</label>
-        <input type="text" id="form-createdDate" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-    <div class="form-group">
-        <label for="form-lastUpdatedDate">Last Updated Date:</label>
-        <input type="text" id="form-lastUpdatedDate" readonly style="background-color: #f5f5f5;">
-    </div>
-    
-        <div class="form-group">
-        <label for="form-contactNumber">Contact Number: <span style="color: #fc466b;">*</span></label>
-        <input type="tel" id="form-contactNumber" placeholder="Enter contact number" required style="background-color: #ffffff; border: 2px solid #667eea;">
-        <small style="color: #718096; font-size: 12px;">Required field - Please enter your contact number</small>
-    </div>
+    <h3 style="color: #667eea; margin-bottom: 20px;">Equipment Details</h3>
+    
+    <div class="form-group">
+        <label for="form-itemID">Item ID:</label>
+        <input type="text" id="form-itemID" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-productLocation">Hospital / Location:</label>
+        <input type="text" id="form-productLocation" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-productModel">Product Model:</label>
+        <input type="text" id="form-productModel" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-serialNumber">Serial Number:</label>
+        <input type="text" id="form-serialNumber" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-supplierName">Supplier Name:</label>
+        <input type="text" id="form-supplierName" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-unit">Unit:</label>
+        <input type="text" id="form-unit" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-createdDate">Created Date:</label>
+        <input type="text" id="form-createdDate" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <div class="form-group">
+        <label for="form-lastUpdatedDate">Last Updated Date:</label>
+        <input type="text" id="form-lastUpdatedDate" readonly style="background-color: #f5f5f5;">
+    </div>
+    
+    <!-- Contact Number - Editable Field -->
+    <div class="form-group">
+        <label for="form-contactNumber">Contact Number: <span style="color: #fc466b;">*</span></label>
+        <input type="tel" id="form-contactNumber" placeholder="Enter contact number" required style="background-color: #ffffff; border: 2px solid #667eea;">
+        <small style="color: #718096; font-size: 12px;">Required field - Please enter your contact number</small>
+    </div>
 </div>
 
+<!-- Action Options (Initially Disabled) -->
 <div class="action-options" id="actionOptions" style="opacity: 0.5; pointer-events: none;">
-    <button class="action-btn repair" onclick="selectAction('repair')" id="repairBtn" disabled>
-        <div class="action-icon">🔧</div>
-        <div>Repair</div>
-    </button>
-    
-    <button class="action-btn training" onclick="selectAction('user_training')" id="trainingBtn" disabled>
-        <div class="action-icon">📚</div>
-        <div>User Training</div>
-    </button>
-    
-    <button class="action-btn maintenance" onclick="selectAction('one_time_service')" id="maintenanceBtn" disabled>
-        <div class="action-icon">⚙️</div>
-        <div>One time service request</div>
-    </button>
-    
-    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn" disabled>
-        <div class="action-icon">📊</div>
-        <div>Consumer request</div>
-    </button>
+    <button class="action-btn repair" onclick="selectAction('repair')" id="repairBtn" disabled>
+        <div class="action-icon">🔧</div>
+        <div>Repair</div>
+    </button>
+    
+    <button class="action-btn training" onclick="selectAction('user_training')" id="trainingBtn" disabled>
+        <div class="action-icon">📚</div>
+        <div>User Training</div>
+    </button>
+    
+    <button class="action-btn maintenance" onclick="selectAction('one_time_service')" id="maintenanceBtn" disabled>
+        <div class="action-icon">⚙️</div>
+        <div>One time service request</div>
+    </button>
+    
+    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn" disabled>
+        <div class="action-icon">📊</div>
+        <div>Consumer request</div>
+    </button>
 </div>
 
 <div id="statusMessage"></div>
@@ -101,313 +104,228 @@
 <script>
 // Application state
 const currentEquipmentId = '{{ equipment_id }}';
-// Set initial values from Jinja context to fallback if API fails/missing data
-let hospital = '{{ hospital | default("", true) }}'; // Added default and strict filtering
-let locationName = '{{ location | default("", true) }}'; // Renamed 'location' to 'locationName' to avoid conflict with the local 'location' object
-let unitCode = '{{ unit_code | default("", true) }}';
-let serialNumber = '{{ serial_number | default("", true) }}';
-let supplierName = '{{ supplier_name | default("", true) }}';
-let unit = '{{ unit | default("", true) }}';
-let itemId = '{{ item_id | default("", true) }}';
+let hospital = `{{ hospital }}`;
+let unitCode = `{{ unit_code }}`;
+let serialNumber = `{{ serial_number }}`;
+let supplierName = `{{ supplier_name }}`;
+let unit = `{{ unit }}`;
+let itemId = `{{ item_id }}`;
 let masterDataLoaded = false;
 let contactNumber = '';
-let modality = ''; // Added modality variable (mapped from productModel)
-
-// Auto-fetch master data when page loads
-window.addEventListener('DOMContentLoaded', function() {
-    // Automatically fetch master data on page load
-    fetchAndMapMasterData();
-});
 
 function fetchAndMapMasterData() {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const formSection = document.getElementById('masterDataForm');
-    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+    const btn = document.getElementById('getMasterDataBtn');
+    const formSection = document.getElementById('masterDataForm');
+    const actionOptions = document.getElementById('actionOptions');
 
-    // Reset masterDataLoaded and re-show loading indicator content if retrying
-    masterDataLoaded = false;
-    if (loadingIndicator) {
-        loadingIndicator.innerHTML = `
-            <div class="spinner" style="margin: 0 auto;"></div>
-            <p style="margin-top: 10px; color: #667eea; font-weight: 600;">Fetching master data...</p>
-        `;
-        loadingIndicator.style.display = 'block';
-    }
-    // Hide form section while loading
-    formSection.style.display = 'none';
+    // Disable button while loading
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
 
-    showStatus('Fetching master data from API...', 'loading');
+    showStatus('Fetching master data from API...', 'loading');
 
-    // **Correction 1: Use itemId for the API call** (Original used item_id which is a template var)
-    fetch(`/api/get_master_data/${itemId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                
-                // Map the fetched data to form fields
-                document.getElementById('form-itemID').value = data.data.itemID || 'N/A';
-                // **Correction 2: Mapping location fields**
-                document.getElementById('form-productHospital').value = data.data.productHospital || data.data.productLocation || 'N/A'; // Assuming productHospital is the correct field, falling back to productLocation
-                // Corrected ID usage: form-productLocation maps to location
-                document.getElementById('form-productLocation').value = data.data.location || 'N/A';
-                document.getElementById('form-productModel').value = data.data.productModel || 'N/A';
-                document.getElementById('form-serialNumber').value = data.data.serialNumber || 'N/A';
-                document.getElementById('form-supplierName').value = data.data.supplierName || 'N/A';
-                document.getElementById('form-unit').value = data.data.unit || 'N/A';
-                document.getElementById('form-createdDate').value = data.data.createdDate || 'N/A';
-                document.getElementById('form-lastUpdatedDate').value = data.data.lastUpdatedDate || 'N/A';
-                
-                // Contact Number from API (if exists)
-                if (data.data.contactNumber) {
-                    document.getElementById('form-contactNumber').value = data.data.contactNumber;
-                }
+    // Fetch master data from backend
+    fetch(`/api/get_master_data/${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Map the fetched data to form fields
+                document.getElementById('form-itemID').value = data.data.itemID || 'N/A';
+                document.getElementById('form-productLocation').value = data.data.productLocation || 'N/A';
+                document.getElementById('form-productModel').value = data.data.productModel || 'N/A';
+                document.getElementById('form-serialNumber').value = data.data.serialNumber || 'N/A';
+                document.getElementById('form-supplierName').value = data.data.supplierName || 'N/A';
+                document.getElementById('form-unit').value = data.data.unit || 'N/A';
+                document.getElementById('form-createdDate').value = data.data.createdDate || 'N/A';
+                document.getElementById('form-lastUpdatedDate').value = data.data.lastUpdatedDate || 'N/A';
+                
+                // Contact Number from API (if exists)
+                if (data.data.contactNumber) {
+                    document.getElementById('form-contactNumber').value = data.data.contactNumber;
+                }
 
-                // **Correction 3: Update local variables consistently**
-                // Note: 'productLocation' in data maps to 'hospital' locally
-                hospital = data.data.productHospital || data.data.productLocation || hospital;
-                locationName = data.data.location || locationName; // Use locationName var
-                unitCode = data.data.productModel || unitCode;
-                serialNumber = data.data.serialNumber || serialNumber;
-                supplierName = data.data.supplierName || supplierName;
-                modality = data.data.productModel || modality; // Modality is correctly mapped from productModel
-                unit = data.data.unit || unit;
+                // Update local variables with fetched data
+                hospital = data.data.productLocation || hospital;
+                unitCode = data.data.productModel || unitCode;
+                serialNumber = data.data.serialNumber || serialNumber;
+                supplierName = data.data.supplierName || supplierName;
+                unit = data.data.unit || unit;
 
-                // Hide loading indicator
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none';
-                }
+                // Show the form section
+                formSection.style.display = 'block';
 
-                // Show the form section
-                formSection.style.display = 'block';
+                // Enable action buttons
+                enableActionButtons();
+                masterDataLoaded = true;
 
-                // Update welcome subtitle
-                if (welcomeSubtitle) {
-                    welcomeSubtitle.textContent = 'Equipment details loaded. Please ensure contact number is correct and select an action:';
-                }
+                // Update button to show success
+                btn.innerHTML = '<div class="action-icon">✓</div><div>Data Loaded</div>';
+                btn.style.backgroundColor = '#48bb78';
 
-                // Enable action buttons
-                enableActionButtons();
-                masterDataLoaded = true;
-
-                showStatus('Master data loaded successfully! Please enter contact number and select an action.', 'success');
-            } else {
-                // **Correction 4: Consolidate error logic for API failure**
-                handleMasterDataError(data.error || 'Unknown API error');
-            }
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            // **Correction 5: Consolidate error logic for network failure**
-            handleMasterDataError(error.message || 'Network or server communication failed');
-        });
+                showStatus('Master data loaded successfully! Please enter contact number and select an action.', 'success');
+            } else {
+                showStatus(`Error: ${data.error}`, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showStatus(`Failed to fetch master data: ${error.message}`, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+        });
 }
-
-// **New function to handle master data errors (DRY principle)**
-function handleMasterDataError(errorMessage) {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
-    
-    if (loadingIndicator) {
-        loadingIndicator.style.display = 'none';
-    }
-
-    if (welcomeSubtitle) {
-        welcomeSubtitle.innerHTML = `<span style="color: #fc466b;">Failed to load equipment data</span>`;
-    }
-
-    showStatus(`Error: ${errorMessage}.`, 'error');
-
-    // Show retry button
-    if (loadingIndicator) {
-        loadingIndicator.innerHTML = `
-            <button class="master-data-btn" onclick="fetchAndMapMasterData()" style="margin-top: 20px;">
-                <div class="action-icon">🔄</div>
-                <div>Retry Loading Data</div>
-            </button>
-        `;
-        loadingIndicator.style.display = 'block';
-    }
-}
-
 
 function enableActionButtons() {
-    const actionOptions = document.getElementById('actionOptions');
-    const actionBtns = document.querySelectorAll('.action-btn');
-    
-    // Enable the action section
-    actionOptions.style.opacity = '1';
-    actionOptions.style.pointerEvents = 'auto';
-    
-    // Enable all action buttons that haven't been completed
-    actionBtns.forEach(btn => {
-        if (!btn.innerHTML.includes('✅')) { // Do not re-enable buttons that were successfully clicked
-            btn.disabled = false;
-            btn.style.cursor = 'pointer';
-            btn.style.opacity = '1';
-        }
-    });
+    const actionOptions = document.getElementById('actionOptions');
+    const actionBtns = document.querySelectorAll('.action-btn');
+    
+    // Enable the action section
+    actionOptions.style.opacity = '1';
+    actionOptions.style.pointerEvents = 'auto';
+    
+    // Enable all action buttons
+    actionBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.style.cursor = 'pointer';
+    });
 }
 
 function selectAction(action) {
-    if (!masterDataLoaded) {
-        showStatus('Please wait for master data to load or retry loading it.', 'error');
-        return;
-    }
+    if (!masterDataLoaded) {
+        showStatus('Please load master data first by clicking "Get Master Data" button', 'error');
+        return;
+    }
 
-    // Get contact number from the input field
-    contactNumber = document.getElementById('form-contactNumber').value.trim();
-    
-    // Validate contact number
-    if (!contactNumber) {
-        showStatus('Please enter a contact number before submitting a request', 'error');
-        const contactInput = document.getElementById('form-contactNumber');
-        contactInput.focus();
-        contactInput.style.borderColor = '#fc466b';
-        return;
-    }
+    // Get contact number from the input field
+    contactNumber = document.getElementById('form-contactNumber').value.trim();
+    
+    // Validate contact number
+    if (!contactNumber) {
+        showStatus('Please enter a contact number before submitting a request', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
 
-    // Reset border color
-    document.getElementById('form-contactNumber').style.borderColor = '#667eea';
+    // Reset border color
+    document.getElementById('form-contactNumber').style.borderColor = '#667eea';
 
-    const actionNames = {
-        'repair': 'Repair',
-        'user_training': 'User Training',
-        'one_time_service': 'One Time Service',
-        'consumer_request': 'Consumer Request'
-    };
-    
-    const selectedAction = actionNames[action];
-    
-    // Disable all action buttons while processing
-    disableActionButtons(true);
-    
-    showStatus(`${selectedAction} selected for equipment ${itemId}. Processing...`, 'loading');
-    
-    // Make API request to Flask backend
-    fetch('/api/action', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            action: action,
-            equipment_id: currentEquipmentId,
-            hospital: hospital,
-            // **Correction 6: Use locationName instead of unit_code (which is productModel)**
-            location: locationName, 
-            unit_code: unitCode, 
-            serial_number: serialNumber,
-            supplier_name: supplierName,
-            unit: unit,
-            item_id: itemId,
-            contact_number: contactNumber  // Send contact number
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            showStatus(data.message, 'success');
-            // Disable the specific button that was clicked
-            disableSpecificButton(action);
-        } else {
-            showStatus(`Failed: ${data.error || 'Unknown error during action submission'}`, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Action error:', error);
-        showStatus(`Failed to submit ${selectedAction.toLowerCase()} request: ${error.message}`, 'error');
-    })
-    .finally(() => {
-        // Only re-enable all buttons that haven't been marked 'Completed'
-        disableActionButtons(false); 
-    });
+    const actionNames = {
+        'repair': 'Repair',
+        'user_training': 'User Training',
+        'one_time_service': 'One Time Service',
+        'consumer_request': 'Consumer Request'
+    };
+    
+    const selectedAction = actionNames[action];
+    
+    // Disable all action buttons while processing
+    disableActionButtons(true);
+    
+    showStatus(`${selectedAction} selected for equipment ${itemId}. Processing...`, 'loading');
+    
+    // Make API request to Flask backend
+    fetch('/api/action', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: action,
+            equipment_id: currentEquipmentId,
+            hospital: hospital,
+            unit_code: unitCode,
+            serial_number: serialNumber,
+            supplier_name: supplierName,
+            unit: unit,
+            item_id: itemId,
+            contact_number: contactNumber  // Send contact number
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showStatus(data.message, 'success');
+            // Disable the specific button that was clicked
+            disableSpecificButton(action);
+        } else {
+            showStatus(`Failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Action error:', error);
+        showStatus(`Failed to submit ${selectedAction.toLowerCase()} request: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        disableActionButtons(false);
+    });
 }
 
 function disableSpecificButton(action) {
-    // Map action to button ID
-    const actionToButtonId = {
-        'repair': 'repairBtn',
-        'user_training': 'trainingBtn',
-        'one_time_service': 'maintenanceBtn',
-        'consumer_request': 'statusBtn'
-    };
-    
-    const buttonId = actionToButtonId[action];
-    if (buttonId) {
-        const button = document.getElementById(buttonId);
-        if (button) {
-            button.disabled = true;
-            button.style.opacity = '0.6';
-            button.style.cursor = 'not-allowed';
-            button.innerHTML = `
-                <div class="action-icon">✅</div>
-                <div>Completed</div>
-            `;
-        }
-    }
+    // Map action to button ID
+    const actionToButtonId = {
+        'repair': 'repairBtn',
+        'user_training': 'trainingBtn',
+        'one_time_service': 'maintenanceBtn',
+        'consumer_request': 'statusBtn'
+    };
+    
+    const buttonId = actionToButtonId[action];
+    if (buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.disabled = true;
+            button.style.opacity = '0.6';
+            button.style.cursor = 'not-allowed';
+            button.innerHTML = `
+                <div class="action-icon">✅</div>
+                <div>Completed</div>
+            `;
+        }
+    }
 }
 
 function disableActionButtons(disable) {
-    const actionBtns = document.querySelectorAll('.action-btn');
-    actionBtns.forEach(btn => {
-        // Check if the button has been marked as 'Completed'
-        const isCompleted = btn.innerHTML.includes('✅');
-        
-        if (!isCompleted) { 
-            btn.disabled = disable;
-            if (disable) {
-                btn.style.cursor = 'not-allowed';
-                btn.style.opacity = '0.6';
-            } else {
-                btn.style.cursor = 'pointer';
-                btn.style.opacity = '1';
-            }
-        } else if (isCompleted && !disable) {
-            // Ensure completed buttons remain disabled and styled correctly even when re-enabling others
-            btn.disabled = true;
-            btn.style.cursor = 'not-allowed';
-            btn.style.opacity = '0.6';
-        }
-    });
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        if (!btn.innerHTML.includes('✅')) { // Don't re-enable completed buttons
+            btn.disabled = disable;
+            if (disable) {
+                btn.style.cursor = 'not-allowed';
+                btn.style.opacity = '0.6';
+            } else {
+                btn.style.cursor = 'pointer';
+                btn.style.opacity = '1';
+            }
+        }
+    });
 }
 
 function goBackToGenerator() {
-    window.location.href = '/';
+    window.location.href = '/';
 }
 
 function showStatus(message, type) {
-    const statusDiv = document.getElementById('statusMessage');
-    // **Correction 7: Added icons for success/error for better visual feedback**
-    let icon = ''; 
-    let spinner = '';
+    const statusDiv = document.getElementById('statusMessage');
+    let iconClass = '';
 
-    if (type === 'loading') {
-        spinner = '<div class="spinner"></div>';
-    } else if (type === 'success') {
-        icon = '✔️ ';
-    } else if (type === 'error') {
-        icon = '❌ ';
-    }
+    if (type === 'loading') {
+        iconClass = '<div class="spinner"></div>';
+    }
 
-    statusDiv.innerHTML = `<div class="status-message status-${type}">${spinner}${icon}${message}</div>`;
+    statusDiv.innerHTML = `<div class="status-message status-${type}">${iconClass}${message}</div>`;
 
-    // **Correction 8: Clear status for all types after a delay**
-    if (type !== 'loading') {
-        const timeout = type === 'success' ? 5000 : 10000;
-        setTimeout(() => {
-            statusDiv.innerHTML = '';
-        }, timeout);
-    }
+    if (type === 'success') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 5000);
+    } else if (type === 'error') {
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 10000);
+    }
 }
 </script>
 {% endblock %}
