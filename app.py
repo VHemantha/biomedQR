@@ -209,8 +209,8 @@ def handle_action():
             'error': str(e)
         }), 500
     
-
-@app.route('/equipment/<item_id>', methods=['GET'])
+    
+@app.route('/api/get_master_data/<item_id>', methods=['GET'])
 def get_master_data(item_id):
     """Fetch master data details by itemID with pagination"""
     try:

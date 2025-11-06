@@ -138,7 +138,7 @@ let supplierName = `{{ supplier_name }}`;
 let unit = `{{ unit }}`;
 let itemId = `{{ item_id }}`;
 let area = '';
-let location = '';
+let equipmentLocation = '';  // ✅ RENAMED from 'location' to avoid conflict
 let masterDataLoaded = false;
 let contactNumber = '';
 let autoScannedData = false;
@@ -432,9 +432,9 @@ function fetchAndMapMasterData() {
                     document.getElementById('form-contactNumber').value = apiData.contactNumber;
                 }
 
-                // Update local state variables
+                // Update local state variables (✅ USING equipmentLocation)
                 area = apiData.area || '';
-                location = apiData.location || '';
+                equipmentLocation = apiData.location || '';  // ✅ FIXED
                 hospital = apiData.productLocation || hospital;
                 unitCode = apiData.productModel || unitCode;
                 serialNumber = apiData.serialNumber || serialNumber;
@@ -442,7 +442,7 @@ function fetchAndMapMasterData() {
                 unit = apiData.unit || unit;
 
                 console.log('✅ Data mapped successfully');
-                console.log('State:', { area, location, hospital, unitCode, serialNumber, supplierName, unit });
+                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit });
                 updateDebugPanel('✅ Data loaded and mapped successfully!');
 
                 // Show the form section with smooth scroll
@@ -560,7 +560,7 @@ function selectAction(action) {
         action: action,
         equipment_id: currentEquipmentId,
         area: area,
-        location: location,
+        location: equipmentLocation,  // ✅ FIXED - using equipmentLocation
         hospital: hospital,
         unit_code: unitCode,
         serial_number: serialNumber,
