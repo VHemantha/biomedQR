@@ -467,19 +467,22 @@ function submitRating() {
     }
     
     const comments = document.getElementById('comments').value.trim();
-    
+
+    // Get the text value for the selected rating
+    const ratingText = ratingConfig[selectedRating].text;
+
     console.log('📤 Submitting rating...');
-    console.log('Rating:', selectedRating);
+    console.log('Rating text:', ratingText);
     console.log('Comments:', comments);
     console.log('Record ID:', recordId);
-    
+
     // Disable submit button
     const btn = document.getElementById('submitRatingBtn');
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner" style="display: inline-block; width: 20px; height: 20px; margin-right: 10px;"></div>Submitting...';
-    
+
     showStatus('⏳ Submitting your rating...', 'loading');
-    
+
     // Make PUT request to update rating
     fetch(`/api/submit_rating/${recordId}`, {
         method: 'PUT',
@@ -487,7 +490,7 @@ function submitRating() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            rating: selectedRating,
+            rating: ratingText,
             comments: comments,
             item_id: itemId
         })
