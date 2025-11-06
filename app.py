@@ -303,7 +303,7 @@ def submit_rating(item_id):
         f'{DATATABLE_ENDPOINT}',
         headers={'Authorization': f'Bearer {token}'}
     )
-    
+    record_id = None
     records = response.json()
     matching = [r for r in records if r.get('itemID') == item_id]
     
