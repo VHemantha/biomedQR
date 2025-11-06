@@ -349,11 +349,11 @@ def submit_rating(item_id):
         update_url = f'{DATATABLE_ENDPOINT}/{record_id}'
         response = requests.put(
             update_url,
-            headers={
-                'Authorization': f'Bearer {token}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "user-agent": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+        },
             json=update_payload,
             timeout=10
         )
