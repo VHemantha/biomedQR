@@ -294,7 +294,7 @@ def rating_page(item_id):
     return render_template('rating.html', item_id=item_id)
 
 # Add this new route to handle rating submission
-@app.route('/api/submit_rating/<item_id>', methods=['PUT'])
+@app.route('/api/submit_rating/<item_id>', methods=['POST'])
 def submit_rating(item_id):
     """Submit rating using item_id instead of record_id"""
     # First, fetch the record to get its actual ID
@@ -342,7 +342,7 @@ def submit_rating(item_id):
             'rating': rating
         }
         
-        print(f"📤 Sending PUT request to update record {record_id}")
+        print(f"Sending PUT request to update record {record_id}")
         print(f"Payload: {json.dumps(update_payload, indent=2)}")
         
         # Make PUT request to update the record

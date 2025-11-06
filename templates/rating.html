@@ -485,7 +485,7 @@ function submitRating() {
 
     // Make PUT request to update rating
     fetch(`/api/submit_rating/${recordId}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
