@@ -14,6 +14,12 @@
     <p class="welcome-subtitle">Scan QR/Barcode to auto-load data or click button below:</p>
 </div>
 
+<!-- Debug Info Panel (Remove after testing) -->
+<div id="debugPanel" style="background: #fff3cd; border: 2px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 8px; font-family: monospace; font-size: 12px;">
+    <strong>🐛 Debug Info:</strong><br>
+    <div id="debugContent">Initializing...</div>
+</div>
+
 <!-- Scanning Status Indicator -->
 <div id="scanningIndicator" class="scanning-indicator" style="display: none; text-align: center; margin: 20px 0; padding: 15px; background-color: #e6fffa; border-left: 4px solid #38b6a8; border-radius: 4px;">
     <div class="spinner" style="display: inline-block; margin-right: 10px;"></div>
@@ -121,7 +127,9 @@
 
 {% block extra_scripts %}
 <script>
-// Application state
+// ============================================
+// APPLICATION STATE & CONFIGURATION
+// ============================================
 const currentEquipmentId = '{{ equipment_id }}';
 let hospital = `{{ hospital }}`;
 let unitCode = `{{ unit_code }}`;
@@ -139,34 +147,86 @@ let autoScannedData = false;
 let scanBuffer = '';
 let scanTimeout = null;
 let isScanning = false;
-const SCAN_TIMEOUT_MS = 100; // Time window for scan completion
+const SCAN_TIMEOUT_MS = 100;
 const MIN_SCAN_LENGTH = 3;
 const MAX_SCAN_LENGTH = 50;
 
-// Initialize on page load
+// ============================================
+// DEBUG HELPER FUNCTION
+// ============================================
+function updateDebugPanel(info) {
+    const debugContent = document.getElementById('debugContent');
+    const timestamp = new Date().toLocaleTimeString();
+    debugContent.innerHTML = `
+        <strong>[${timestamp}]</strong><br>
+        Equipment ID: <span style="color: blue;">${currentEquipmentId}</span><br>
+        Item ID: <span style="color: ${itemId && itemId !== '' && itemId !== 'None' ? 'green' : 'red'};">${itemId || 'NOT SET'}</span><br>
+        Hospital: ${hospital || 'N/A'}<br>
+        Serial: ${serialNumber || 'N/A'}<br>
+        Auto-Scanned: ${autoScannedData ? 'YES' : 'NO'}<br>
+        Master Data Loaded: ${masterDataLoaded ? 'YES' : 'NO'}<br>
+        <hr style="margin: 10px 0;">
+        ${info || 'Waiting for action...'}
+    `;
+}
+
+// ============================================
+// PAGE INITIALIZATION
+// ============================================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Equipment Portal initialized');
-    console.log('Item ID from URL:', itemId);
+    console.log('='.repeat(50));
+    console.log('🚀 EQUIPMENT PORTAL INITIALIZED');
+    console.log('='.repeat(50));
+    console.log('Current Equipment ID:', currentEquipmentId);
+    console.log('Item ID from template:', itemId);
+    console.log('Item ID type:', typeof itemId);
+    console.log('Item ID length:', itemId ? itemId.length : 0);
+    console.log('Hospital:', hospital);
+    console.log('Unit Code:', unitCode);
+    console.log('Serial Number:', serialNumber);
+    console.log('='.repeat(50));
+    
+    updateDebugPanel('Page loaded, checking itemId...');
     
     // Initialize barcode scanner detection
     initializeBarcodeScanner();
     
-    // Auto-fetch if itemId exists in URL
-    if (itemId && itemId.trim() !== '' && itemId !== 'None') {
-        console.log('✅ Item ID found, auto-fetching data...');
+    // Check if itemId is valid and trigger auto-fetch
+    const isValidItemId = itemId && 
+                          itemId.trim() !== '' && 
+                          itemId !== 'None' && 
+                          itemId !== 'null' && 
+                          itemId !== 'undefined';
+    
+    console.log('Is Valid Item ID?', isValidItemId);
+    
+    if (isValidItemId) {
+        console.log('✅ Valid Item ID found:', itemId);
+        updateDebugPanel(`Valid Item ID found: ${itemId}<br>Triggering auto-fetch in 1 second...`);
+        
+        // Auto-fetch after short delay
         setTimeout(() => {
+            console.log('⏰ Timeout triggered - calling fetchAndMapMasterData()');
+            updateDebugPanel(`Auto-fetching data for: ${itemId}`);
             fetchAndMapMasterData();
-        }, 500);
+        }, 1000);
+    } else {
+        console.log('❌ No valid Item ID found');
+        updateDebugPanel('❌ No valid Item ID. Please scan QR code or click "Get Master Data"');
     }
 });
 
-// Initialize Barcode/QR Scanner Detection
+// ============================================
+// BARCODE/QR SCANNER DETECTION
+// ============================================
 function initializeBarcodeScanner() {
     console.log('🔍 Barcode scanner detection initialized');
+    updateDebugPanel('Scanner detection active. Waiting for scan...');
     
     document.addEventListener('keydown', function(event) {
         // Ignore keyboard input if user is typing in an input field
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+            console.log('⏭️ Ignoring keypress - user typing in input field');
             return;
         }
         
@@ -176,6 +236,7 @@ function initializeBarcodeScanner() {
             scanBuffer = '';
             showScanningIndicator(true);
             console.log('📱 Scan started...');
+            updateDebugPanel('📱 Scanning in progress...');
         }
         
         // Clear previous timeout
@@ -186,10 +247,12 @@ function initializeBarcodeScanner() {
         // Accumulate characters (only single printable characters)
         if (event.key.length === 1) {
             scanBuffer += event.key;
+            console.log('Buffer:', scanBuffer);
             
             // Prevent buffer overflow
             if (scanBuffer.length > MAX_SCAN_LENGTH) {
                 console.log('⚠️ Scan buffer overflow, resetting...');
+                updateDebugPanel('⚠️ Scan too long - resetting');
                 resetScanner();
                 return;
             }
@@ -199,6 +262,7 @@ function initializeBarcodeScanner() {
         if (event.key === 'Enter' && scanBuffer.length >= MIN_SCAN_LENGTH) {
             event.preventDefault();
             console.log('✅ Scan completed (Enter key):', scanBuffer);
+            updateDebugPanel(`✅ Scan completed: ${scanBuffer}`);
             handleScanComplete(scanBuffer.trim());
             resetScanner();
             return;
@@ -208,6 +272,7 @@ function initializeBarcodeScanner() {
         scanTimeout = setTimeout(() => {
             if (scanBuffer.length >= MIN_SCAN_LENGTH) {
                 console.log('✅ Scan completed (timeout):', scanBuffer);
+                updateDebugPanel(`✅ Scan completed (timeout): ${scanBuffer}`);
                 handleScanComplete(scanBuffer.trim());
             }
             resetScanner();
@@ -215,7 +280,6 @@ function initializeBarcodeScanner() {
     });
 }
 
-// Reset scanner state
 function resetScanner() {
     scanBuffer = '';
     isScanning = false;
@@ -224,9 +288,9 @@ function resetScanner() {
         clearTimeout(scanTimeout);
         scanTimeout = null;
     }
+    console.log('🔄 Scanner reset');
 }
 
-// Show/Hide scanning indicator
 function showScanningIndicator(show) {
     const indicator = document.getElementById('scanningIndicator');
     if (show) {
@@ -238,12 +302,14 @@ function showScanningIndicator(show) {
     }
 }
 
-// Handle completed scan - AUTOMATICALLY TRIGGER DATA FETCH
+// ============================================
+// HANDLE SCAN COMPLETION
+// ============================================
 function handleScanComplete(scannedData) {
     console.log('🔍 Processing scanned data:', scannedData);
+    updateDebugPanel(`Processing scan: ${scannedData}`);
     
     // Try to extract Item ID from scanned data
-    // Common formats: "EQ12345", "ITEM-001", or just numbers "123456"
     const itemIdMatch = scannedData.match(/([A-Z]{2,}\d+|[A-Z]+-\d+|\d{4,})/i);
     
     if (itemIdMatch || scannedData.length >= MIN_SCAN_LENGTH) {
@@ -257,6 +323,8 @@ function handleScanComplete(scannedData) {
             itemId = scannedData;
             console.log('📌 Using full scan as Item ID:', itemId);
         }
+        
+        updateDebugPanel(`Item ID set to: ${itemId}<br>Triggering fetch...`);
         
         // Update equipment info display
         const equipmentInfoSpan = document.querySelector('.equipment-info span');
@@ -274,36 +342,59 @@ function handleScanComplete(scannedData) {
         
     } else {
         console.log('❌ Invalid scan - too short or invalid format');
+        updateDebugPanel('❌ Invalid scan format');
         showStatus('⚠️ Invalid scan. Please try again or enter Item ID manually.', 'error');
     }
 }
 
-// Fetch and map master data from API
+// ============================================
+// FETCH AND MAP MASTER DATA
+// ============================================
 function fetchAndMapMasterData() {
+    console.log('='.repeat(50));
+    console.log('📡 FETCH AND MAP MASTER DATA CALLED');
+    console.log('='.repeat(50));
+    
     const btn = document.getElementById('getMasterDataBtn');
     const formSection = document.getElementById('masterDataForm');
     const actionOptions = document.getElementById('actionOptions');
-    const getMasterDataSection = document.getElementById('getMasterDataSection');
 
     // Validate itemId
-    if (!itemId || itemId.trim() === '' || itemId === 'None') {
+    console.log('Validating itemId:', itemId);
+    console.log('Type:', typeof itemId);
+    console.log('Value:', itemId);
+    console.log('Trimmed:', itemId ? itemId.trim() : 'N/A');
+    
+    if (!itemId || itemId.trim() === '' || itemId === 'None' || itemId === 'null' || itemId === 'undefined') {
+        console.log('❌ INVALID ITEM ID');
+        updateDebugPanel('❌ Invalid Item ID - cannot fetch');
         showStatus('❌ Item ID is missing. Please scan a QR code or enter Item ID.', 'error');
         return;
     }
 
-    console.log('📡 Fetching data for Item ID:', itemId);
+    console.log('✅ Item ID is valid:', itemId);
+    updateDebugPanel(`Fetching data for: ${itemId}...`);
 
     // Disable button while loading
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
+    }
 
     const source = autoScannedData ? '🔍 Auto-scan' : '👆 Manual';
     showStatus(`${source} - Fetching master data for Item ID: ${itemId}...`, 'loading');
 
+    const apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}`;
+    console.log('API URL:', apiUrl);
+
     // Fetch master data from backend API
-    fetch(`/api/get_master_data/${encodeURIComponent(itemId)}`)
+    fetch(apiUrl)
         .then(response => {
-            console.log('📥 API Response Status:', response.status);
+            console.log('📥 API Response received');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+            console.log('OK:', response.ok);
+            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -311,13 +402,16 @@ function fetchAndMapMasterData() {
         })
         .then(data => {
             console.log('📦 API Response Data:', data);
+            updateDebugPanel(`API Response received. Success: ${data.success}`);
             
             if (data.success && data.data) {
                 const apiData = data.data;
+                console.log('API Data Object:', apiData);
                 
                 // ========================================
                 // FIELD MAPPING: API Response -> HTML Form
                 // ========================================
+                console.log('Mapping fields...');
                 
                 // Core Fields
                 document.getElementById('form-itemID').value = apiData.itemID || 'N/A';
@@ -349,22 +443,22 @@ function fetchAndMapMasterData() {
 
                 console.log('✅ Data mapped successfully');
                 console.log('State:', { area, location, hospital, unitCode, serialNumber, supplierName, unit });
+                updateDebugPanel('✅ Data loaded and mapped successfully!');
 
                 // Show the form section with smooth scroll
                 formSection.style.display = 'block';
                 formSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-                // Hide the "Get Master Data" section (optional)
-                // getMasterDataSection.style.display = 'none';
 
                 // Enable action buttons
                 enableActionButtons();
                 masterDataLoaded = true;
 
                 // Update button to show success
-                btn.innerHTML = '<div class="action-icon">✅</div><div>Data Loaded Successfully</div>';
-                btn.style.backgroundColor = '#48bb78';
-                btn.style.cursor = 'default';
+                if (btn) {
+                    btn.innerHTML = '<div class="action-icon">✅</div><div>Data Loaded Successfully</div>';
+                    btn.style.backgroundColor = '#48bb78';
+                    btn.style.cursor = 'default';
+                }
 
                 const successMessage = autoScannedData 
                     ? '✅ Master data auto-loaded from scan! Please enter contact number and select an action.'
@@ -380,20 +474,27 @@ function fetchAndMapMasterData() {
             } else {
                 const errorMsg = data.error || 'Unknown error occurred';
                 console.error('❌ API Error:', errorMsg);
+                updateDebugPanel(`❌ API Error: ${errorMsg}`);
                 showStatus(`❌ Error: ${errorMsg}`, 'error');
                 
                 // Re-enable button
-                btn.disabled = false;
-                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+                }
             }
         })
         .catch(error => {
             console.error('❌ Fetch error:', error);
+            console.error('Error stack:', error.stack);
+            updateDebugPanel(`❌ Fetch Error: ${error.message}`);
             showStatus(`❌ Failed to fetch master data: ${error.message}`, 'error');
             
             // Re-enable button
-            btn.disabled = false;
-            btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
+            }
         });
 }
 
@@ -416,22 +517,19 @@ function enableActionButtons() {
 
 function selectAction(action) {
     if (!masterDataLoaded) {
-        showStatus('⚠️ Please load master data first by clicking "Get Master Data" button', 'error');
+        showStatus('⚠️ Please load master data first', 'error');
         return;
     }
 
-    // Get contact number from the input field
     contactNumber = document.getElementById('form-contactNumber').value.trim();
     
-    // Validate contact number
     if (!contactNumber) {
-        showStatus('⚠️ Please enter a contact number before submitting a request', 'error');
+        showStatus('⚠️ Please enter a contact number', 'error');
         document.getElementById('form-contactNumber').focus();
         document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
         return;
     }
 
-    // Validate contact number format (basic validation)
     const contactRegex = /^[\d\s\+\-\(\)]{7,15}$/;
     if (!contactRegex.test(contactNumber)) {
         showStatus('⚠️ Please enter a valid contact number (7-15 digits)', 'error');
@@ -440,7 +538,6 @@ function selectAction(action) {
         return;
     }
 
-    // Reset border color
     document.getElementById('form-contactNumber').style.borderColor = '#667eea';
 
     const actionNames = {
@@ -453,13 +550,12 @@ function selectAction(action) {
     const selectedAction = actionNames[action];
     
     console.log('🔧 Action selected:', selectedAction);
+    updateDebugPanel(`Submitting ${selectedAction}...`);
     
-    // Disable all action buttons while processing
     disableActionButtons(true);
     
-    showStatus(`⏳ ${selectedAction} selected for equipment ${itemId}. Processing...`, 'loading');
+    showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
     
-    // Prepare request payload
     const requestPayload = {
         action: action,
         equipment_id: currentEquipmentId,
@@ -476,7 +572,6 @@ function selectAction(action) {
     
     console.log('📤 Sending request:', requestPayload);
     
-    // Make API request to Flask backend
     fetch('/api/action', {
         method: 'POST',
         headers: {
@@ -492,16 +587,18 @@ function selectAction(action) {
         console.log('📦 Action Response:', data);
         
         if (data.success) {
+            updateDebugPanel(`✅ ${selectedAction} completed!`);
             showStatus(`✅ ${data.message}`, 'success');
-            // Disable the specific button that was clicked
             disableSpecificButton(action);
         } else {
+            updateDebugPanel(`❌ ${selectedAction} failed`);
             showStatus(`❌ Failed: ${data.error}`, 'error');
         }
     })
     .catch(error => {
         console.error('❌ Action error:', error);
-        showStatus(`❌ Failed to submit ${selectedAction.toLowerCase()} request: ${error.message}`, 'error');
+        updateDebugPanel(`❌ Error: ${error.message}`);
+        showStatus(`❌ Failed: ${error.message}`, 'error');
     })
     .finally(() => {
         disableActionButtons(false);
@@ -509,7 +606,6 @@ function selectAction(action) {
 }
 
 function disableSpecificButton(action) {
-    // Map action to button ID
     const actionToButtonId = {
         'repair': 'repairBtn',
         'user_training': 'trainingBtn',
@@ -528,7 +624,6 @@ function disableSpecificButton(action) {
                 <div class="action-icon">✅</div>
                 <div>Completed</div>
             `;
-            console.log('✅ Button marked as completed:', buttonId);
         }
     }
 }
@@ -536,15 +631,10 @@ function disableSpecificButton(action) {
 function disableActionButtons(disable) {
     const actionBtns = document.querySelectorAll('.action-btn');
     actionBtns.forEach(btn => {
-        if (!btn.innerHTML.includes('✅')) { // Don't re-enable completed buttons
+        if (!btn.innerHTML.includes('✅')) {
             btn.disabled = disable;
-            if (disable) {
-                btn.style.cursor = 'not-allowed';
-                btn.style.opacity = '0.6';
-            } else {
-                btn.style.cursor = 'pointer';
-                btn.style.opacity = '1';
-            }
+            btn.style.cursor = disable ? 'not-allowed' : 'pointer';
+            btn.style.opacity = disable ? '0.6' : '1';
         }
     });
 }
