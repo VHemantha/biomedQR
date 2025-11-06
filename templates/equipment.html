@@ -14,12 +14,16 @@
     <p class="welcome-subtitle">Get master data to proceed:</p>
 </div>
 
-<!-- Get Master Data Button -->
-<div style="text-align: center; margin: 30px 0;">
-    <button class="master-data-btn" onclick="fetchAndMapMasterData()" id="getMasterDataBtn">
-        <div class="action-icon">🔍</div>
-        <div>Get Master Data</div>
-    </button>
+<!-- Scanning Status Indicator -->
+<div id="scanningIndicator" class="scanning-indicator" style="display: none; text-align: center; margin: 20px 0; padding: 15px; background-color: #e6fffa; border-left: 4px solid #38b6a8; border-radius: 4px;">
+    <div class="spinner" style="display: inline-block; margin-right: 10px;"></div>
+    <span id="scanningText" style="color: #38b6a8; font-weight: 500;">Scanning QR/Barcode... Auto-fetching data</span>
+</div>
+
+<!-- Waiting for Scan Message -->
+<div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f0f4ff; border-radius: 8px; border: 2px dashed #667eea;">
+    <div style="font-size: 18px; color: #667eea; font-weight: 500;">📱 Ready for Scan</div>
+    <p style="color: #718096; margin-top: 10px;">Please scan the QR code or barcode to load equipment data</p>
 </div>
 
 <!-- Master Data Form Section (Initially Hidden) -->
@@ -112,7 +116,89 @@ let unit = `{{ unit }}`;
 let itemId = `{{ item_id }}`;
 let masterDataLoaded = false;
 let contactNumber = '';
+let autoScannedData = false;
+let scanBuffer = '';
+let scanTimeout = null;
+const SCAN_TIMEOUT = 100; // milliseconds to wait for scan completion
 
+// Initialize auto-scan detection on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeScanDetection();
+});
+
+// Initialize barcode/QR scan detection
+function initializeScanDetection() {
+    let scanBuffer = '';
+    let isScanning = false;
+
+    // Listen for keyboard input (barcode scanners typically emit keyboard events)
+    document.addEventListener('keydown', function(event) {
+        // Start scan detection
+        if (!isScanning) {
+            isScanning = true;
+            showScanningIndicator(true);
+        }
+
+        // Clear existing timeout
+        if (scanTimeout) {
+            clearTimeout(scanTimeout);
+        }
+
+        // Accumulate characters
+        if (event.key !== 'Enter') {
+            scanBuffer += event.key;
+        }
+
+        // Detect scan completion (Enter key marks end of scan)
+        if (event.key === 'Enter' && scanBuffer.length > 0) {
+            event.preventDefault();
+            handleScanComplete(scanBuffer);
+            scanBuffer = '';
+            isScanning = false;
+            showScanningIndicator(false);
+            return;
+        }
+
+        // Set timeout to detect scan end if no Enter key
+        scanTimeout = setTimeout(() => {
+            if (scanBuffer.length > 3) { // Minimum scan length
+                handleScanComplete(scanBuffer);
+                scanBuffer = '';
+            }
+            isScanning = false;
+            showScanningIndicator(false);
+        }, SCAN_TIMEOUT);
+    });
+}
+
+// Show/hide scanning indicator
+function showScanningIndicator(show) {
+    const indicator = document.getElementById('scanningIndicator');
+    if (show) {
+        indicator.style.display = 'block';
+    } else {
+        setTimeout(() => {
+            indicator.style.display = 'none';
+        }, 500);
+    }
+}
+
+// Handle scan completion
+function handleScanComplete(scannedData) {
+    console.log('Scan detected:', scannedData);
+    
+    // Optionally: parse scanned data if it contains equipment ID
+    // Example: If QR code contains equipment ID format like "EQ12345"
+    const equipmentIdMatch = scannedData.match(/([A-Z]{2}\d+)/);
+    
+    if (equipmentIdMatch || scannedData.length > 3) {
+        autoScannedData = true;
+        // Automatically fetch master data
+        fetchAndMapMasterData();
+    }
+}
+
+// Fetch master data from API
 function fetchAndMapMasterData() {
     const btn = document.getElementById('getMasterDataBtn');
     const formSection = document.getElementById('masterDataForm');
@@ -122,7 +208,8 @@ function fetchAndMapMasterData() {
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
 
-    showStatus('Fetching master data from API...', 'loading');
+    const source = autoScannedData ? 'auto-scan' : 'manual';
+    showStatus(`Fetching master data from API (${source})...`, 'loading');
 
     // Fetch master data from backend
     fetch(`/api/get_master_data/${itemId}`)
@@ -158,22 +245,17 @@ function fetchAndMapMasterData() {
                 enableActionButtons();
                 masterDataLoaded = true;
 
-                // Update button to show success
-                btn.innerHTML = '<div class="action-icon">✓</div><div>Data Loaded</div>';
-                btn.style.backgroundColor = '#48bb78';
-
-                showStatus('Master data loaded successfully! Please enter contact number and select an action.', 'success');
+                const message = autoScannedData 
+                    ? 'Master data auto-loaded from scan! Please enter contact number and select an action.'
+                    : 'Master data loaded successfully! Please enter contact number and select an action.';
+                showStatus(message, 'success');
             } else {
                 showStatus(`Error: ${data.error}`, 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
             }
         })
         .catch(error => {
             console.error('Fetch error:', error);
             showStatus(`Failed to fetch master data: ${error.message}`, 'error');
-            btn.disabled = false;
-            btn.innerHTML = '<div class="action-icon">🔍</div><div>Get Master Data</div>';
         });
 }
 
@@ -241,7 +323,7 @@ function selectAction(action) {
             supplier_name: supplierName,
             unit: unit,
             item_id: itemId,
-            contact_number: contactNumber  // Send contact number
+            contact_number: contactNumber
         })
     })
     .then(response => response.json())
