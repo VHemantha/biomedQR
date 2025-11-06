@@ -137,14 +137,16 @@ def handle_action():
     try:
         data = request.get_json()
         action = data.get('action')
-        equipment_id = data.get('equipment_id')  # This is now the item_id
+        equipment_id = data.get('equipment_id')
+        area = data.get('area') or ''
+        location = data.get('location') or ''
         hospital = data.get('hospital') or ''
         unit_code = data.get('unit_code') or ''
         serial_number = data.get('serial_number') or ''
         supplier_name = data.get('supplier_name') or ''
         unit = data.get('unit') or ''
         item_id = data.get('item_id') or ''
-        contact_number = data.get('contact_number') or ''  # Get contact number from request
+        contact_number = data.get('contact_number') or ''
         
         if not action or not equipment_id:
             return jsonify({'error': 'Missing action or equipment_id'}), 400
@@ -154,7 +156,6 @@ def handle_action():
         
         current_date = datetime.now().strftime('%Y-%m-%d')
         
-        # Map action identifiers to titles
         action_titles = {
             'repair': f'Repair Request - Item {equipment_id}',
             'user_training': f'User Training - Item {equipment_id}',
@@ -164,12 +165,16 @@ def handle_action():
 
         if action not in action_titles:
             return jsonify({'error': 'Invalid action'}), 400
-        userID  = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
-        # API payload schema with contact number
+        
+        userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
+        
+        # API payload with ALL fields including area and location
         api_data = {
             'title': action_titles[action],
             'userName': userID,
             'currentDate': current_date,
+            'area': area,
+            'location': location,
             'productModel': unit_code,
             'serialNumber': serial_number,
             'productLocation': hospital,
@@ -179,7 +184,7 @@ def handle_action():
             'unit': unit,
             'itemID': item_id,
             'contactPerson': None,
-            'conactTel': contact_number,  # Add contact number to API payload
+            'conactTel': contact_number,
             'installationDate': None,
             'productType': None,
             'warrantyExpireDate': None,
@@ -187,7 +192,8 @@ def handle_action():
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }
         
-        # Make API request
+        print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
+        
         result = make_api_request(api_data)
         
         return jsonify({
@@ -197,11 +203,13 @@ def handle_action():
         })
         
     except Exception as e:
+        print(f"❌ Action failed: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
-
+    
+    
 @app.route('/api/get_master_data/<item_id>', methods=['GET'])
 def get_master_data(item_id):
     """Fetch master data details by itemID with pagination"""
