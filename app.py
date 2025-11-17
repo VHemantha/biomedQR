@@ -294,31 +294,26 @@ def rating_page(item_id):
     return render_template('rating.html', item_id=item_id)
 
 # Add this new route to handle rating submission
-@app.route('/api/submit_rating/<item_id>', methods=['POST'])
-def submit_rating(item_id):
-    """Submit rating using item_id instead of record_id"""
-    # First, fetch the record to get its actual ID
-    token = get_access_token()
-    response = requests.get(
-        f'{DATATABLE_ENDPOINT}',
-        headers={'Authorization': f'Bearer {token}'}
-    )
-    record_id = None
-    records = response.json()
-    matching = [r for r in records if r.get('itemID') == item_id]
-    
-    if matching:
-        record_id = matching[0].get('id')  # Get the actual record ID
-    
+@app.route('/api/submit_rating/<record_id>', methods=['POST'])
+def submit_rating(record_id):
+    """Submit rating using record_id"""
     try:
         data = request.get_json()
         rating = data.get('rating')
         comments = data.get('comments', '')
-        item_id = data.get('item_id', '')
+        item_id_from_body = data.get('item_id', '')
         
+        print(f"Record ID: {record_id}")
         print(f"Rating: {rating}")
         print(f"Comments: {comments}")
-        print(f"Item ID: {item_id}")
+        print(f"Item ID from body: {item_id_from_body}")
+
+        # Validate record_id is provided
+        if not record_id:
+            return jsonify({
+                'success': False,
+                'error': 'Record ID is required'
+            }), 400
 
         # Valid rating text values
         valid_ratings = ['Highly Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Highly Satisfied']
