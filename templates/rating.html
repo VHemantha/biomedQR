@@ -42,6 +42,10 @@
                     <span class="detail-value" id="display-supplier">-</span>
                 </div>
                 <div class="detail-item">
+                    <span class="detail-label">Activity:</span>
+                    <span class="detail-value" id="display-activity">-</span>
+                </div>
+                <div class="detail-item">
                     <span class="detail-label">Service Date:</span>
                     <span class="detail-value" id="display-serviceDate">-</span>
                 </div>
@@ -447,6 +451,7 @@ function displayEquipmentDetails(data) {
     
     // Display last updated date as service date
     const serviceDate = data.lastUpdatedDate || data.createdDate || '-';
+    document.getElementById('display-activity').textContent = data.activity || '-';
     document.getElementById('display-serviceDate').textContent = serviceDate;
     
     console.log('✅ Equipment details displayed');
