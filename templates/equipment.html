@@ -115,11 +115,12 @@
         <div class="action-icon">⚙️</div>
         <div>One time service request</div>
     </button>
-    
-    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn" disabled>
-        <div class="action-icon">📊</div>
-        <div>Consumer request</div>
+
+    <button class="action-btn consumable" onclick="selectAction('consumer_request')" id="consumableBtn" disabled>
+        <div class="action-icon">🛒</div>
+        <div>Consumable Request</div>
     </button>
+
 </div>
 
 <div id="statusMessage"></div>
@@ -544,6 +545,7 @@ function selectAction(action) {
         'repair': 'Repair',
         'user_training': 'User Training',
         'one_time_service': 'One Time Service',
+        'consumable_request': 'Consumable Request',
         'consumer_request': 'Consumer Request'
     };
     
@@ -610,6 +612,7 @@ function disableSpecificButton(action) {
         'repair': 'repairBtn',
         'user_training': 'trainingBtn',
         'one_time_service': 'maintenanceBtn',
+        'consumable_request': 'consumableBtn',
         'consumer_request': 'statusBtn'
     };
     
