@@ -211,9 +211,9 @@ def handle_action():
         }), 500
     
     #CONSUMABLE REQUEST HANDLER
-@app.route('/api/consumable', methods=['POST'])
-def handle_action():
-    """Handle equipment actions via API"""
+@app.route('/api/CR', methods=['POST'])
+def handle_consumable_request():
+    """Handle consumable request via API"""
     try:
         data = request.get_json()
         action = data.get('action')
