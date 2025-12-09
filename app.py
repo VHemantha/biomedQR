@@ -278,28 +278,18 @@ def handle_consumable_request():
         
         # API payload with ALL fields including area and location
         api_data = {
-            'assigneeId': userID,
-            'title': action_titles,
-            'feildEngineer': userID,
-            'currentDate': current_date,
-            'area': area,
-            'location': location,
-            'productModel': unit_code,
-            'serialNumber': serial_number,
-            'productLocation': hospital,
-            'hospital': hospital,
-            'requestType': action.replace('_', ' ').title(),
-            'supplierName': supplier_name,
-            'unit': unit,
-            'itemID': item_id,
-            'contactPerson': None,
-            'conactTel': contact_number,
-            'installationDate': None,
-            'productType': None,
-            'warrantyExpireDate': None,
-            'unit1': unit,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
-        }
+                    'title': action_titles,  # string - matches directly
+                    'feildEngineer': userID,  # user - matches directly (note: typo "feild" preserved)
+                    'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),  # date - remove microseconds for date type
+                    'area': area,  # text - matches directly
+                    'productModel': unit_code,  # text - matches directly
+                    'serialNumber': serial_number,  # text - matches directly
+                    'hospital': hospital,  # text - matches directly
+                    'requestType': action.replace('_', ' ').title(),  # text - matches directly
+                    'contactPerson1': None,  # text - mapped from 'contactPerson'
+                    'conactNumber': contact_number,  # text - mapped from 'conactTel'
+                    'remarks': None  # text - general remarks field (optional)
+                }
         
         print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
         
