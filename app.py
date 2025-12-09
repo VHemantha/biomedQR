@@ -11,6 +11,7 @@ CLIENT_ID = 'E7NKOOGKXQPXLF36KEEQPWPMQF5AHI2ZFUQAYBMT'
 CLIENT_SECRET = 'i2HMGBswdoVL1Ta1r084XIU8ZrR9TBODtxIuFQcV2_fse5iuAfMF83VZHT-c6c_GiitngkEP'
 TOKEN_URL = 'https://app.workhub24.com/api/auth/token'
 API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wd9e53c83d2/cards'
+CONS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/w7a45294262/cards'
 # Datatable endpoint to create records when generating QR
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 
@@ -208,6 +209,79 @@ def handle_action():
             'success': False,
             'error': str(e)
         }), 500
+    
+    #CONSUMABLE REQUEST HANDLER
+@app.route('/api/consumable', methods=['POST'])
+def handle_action():
+    """Handle equipment actions via API"""
+    try:
+        data = request.get_json()
+        action = data.get('action')
+        equipment_id = data.get('equipment_id')
+        area = data.get('area') or ''
+        location = data.get('location') or ''
+        hospital = data.get('hospital') or ''
+        unit_code = data.get('unit_code') or ''
+        serial_number = data.get('serial_number') or ''
+        supplier_name = data.get('supplier_name') or ''
+        unit = data.get('unit') or ''
+        item_id = data.get('item_id') or ''
+        contact_number = data.get('contact_number') or ''
+        
+        if not action or not equipment_id:
+            return jsonify({'error': 'Missing action or equipment_id'}), 400
+        
+        if not contact_number:
+            return jsonify({'error': 'Contact number is required'}), 400
+        
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        
+        action_titles = f"consumable Request - Item {equipment_id}"
+
+        
+        userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
+        
+        # API payload with ALL fields including area and location
+        api_data = {
+            'title': action_titles,
+            'feildEngineer': userID,
+            'currentDate': current_date,
+            'area': area,
+            'location': location,
+            'productModel': unit_code,
+            'serialNumber': serial_number,
+            'productLocation': hospital,
+            'hospital': hospital,
+            'requestType': action.replace('_', ' ').title(),
+            'supplierName': supplier_name,
+            'unit': unit,
+            'itemID': item_id,
+            'contactPerson': None,
+            'conactTel': contact_number,
+            'installationDate': None,
+            'productType': None,
+            'warrantyExpireDate': None,
+            'unit1': unit,
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+        }
+        
+        print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
+        
+        result = make_api_request(api_data)
+        
+        return jsonify({
+            'success': True,
+            'message': f'{action.replace("_", " ").title()} request submitted successfully!',
+            'data': result
+        })
+        
+    except Exception as e:
+        print(f"❌ Action failed: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+         
     
     
 @app.route('/api/get_master_data/<item_id>', methods=['GET'])
