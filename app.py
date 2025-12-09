@@ -82,6 +82,41 @@ def make_api_request(data):
     except requests.exceptions.RequestException as e:
         raise Exception(f"Network error: {str(e)}")
 
+
+def make_api_request_consumable(data):
+    """Make API POST request with proper authentication"""
+    token = get_access_token()
+    if not token:
+        raise Exception('Failed to obtain access token')
+    
+    try:
+        response = requests.post(CONS_API_ENDPOINT,
+                               headers={
+                                   'Authorization': f'Bearer {token}',
+                                   'Content-Type': 'application/json',
+                                   'Accept': 'application/json'
+                               },
+                               json=data)
+        
+        print(f"API Response Status: {response.status_code}")
+        if response.status_code in [200, 201]:
+            result = response.json()
+            print(f"API Response Data: {result}")
+            return result
+        else:
+            error_text = response.text
+            try:
+                error_json = response.json()
+                error_message = error_json.get('message') or error_json.get('error') or error_text
+            except:
+                error_message = error_text
+            
+            raise Exception(f"API request failed ({response.status_code}): {error_message}")
+            
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Network error: {str(e)}")
+
+
 def create_datatable_record(record_payload):
     """Create a datatable record using the token auth."""
     token = get_access_token()
@@ -243,6 +278,7 @@ def handle_consumable_request():
         
         # API payload with ALL fields including area and location
         api_data = {
+            'assigneeId': userID,
             'title': action_titles,
             'feildEngineer': userID,
             'currentDate': current_date,
@@ -267,7 +303,7 @@ def handle_consumable_request():
         
         print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
         
-        result = make_api_request(api_data)
+        result = make_api_request_consumable(api_data)
         
         return jsonify({
             'success': True,
