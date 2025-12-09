@@ -115,11 +115,12 @@
         <div class="action-icon">⚙️</div>
         <div>One time service request</div>
     </button>
-    
-    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn" disabled>
-        <div class="action-icon">📊</div>
-        <div>Consumer request</div>
+
+    <button class="action-btn consumable" onclick="selectActionConsumable('ConsumableRequest')" id="consumableBtn" disabled>
+        <div class="action-icon">🛒</div>
+        <div>Consumable Request</div>
     </button>
+
 </div>
 
 <div id="statusMessage"></div>
@@ -544,6 +545,7 @@ function selectAction(action) {
         'repair': 'Repair',
         'user_training': 'User Training',
         'one_time_service': 'One Time Service',
+        'consumable_request': 'Consumable Request',
         'consumer_request': 'Consumer Request'
     };
     
@@ -605,11 +607,98 @@ function selectAction(action) {
     });
 }
 
+function selectActionConsumable(action) {
+    if (!masterDataLoaded) {
+        showStatus('⚠️ Please load master data first', 'error');
+        return;
+    }
+
+    contactNumber = document.getElementById('form-contactNumber').value.trim();
+    
+    if (!contactNumber) {
+        showStatus('⚠️ Please enter a contact number', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    const contactRegex = /^[\d\s\+\-\(\)]{7,15}$/;
+    if (!contactRegex.test(contactNumber)) {
+        showStatus('⚠️ Please enter a valid contact number (7-15 digits)', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    document.getElementById('form-contactNumber').style.borderColor = '#667eea';
+
+    const actionNames =  'ConsumableRequest';
+    
+    
+    console.log('🔧 Action selected:', selectedAction);
+    updateDebugPanel(`Submitting ${selectedAction}...`);
+    
+    disableActionButtons(true);
+    
+    showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
+    
+    const requestPayload = {
+        action: action,
+        equipment_id: currentEquipmentId,
+        area: area,
+        location: equipmentLocation,  // ✅ FIXED - using equipmentLocation
+        hospital: hospital,
+        unit_code: unitCode,
+        serial_number: serialNumber,
+        supplier_name: supplierName,
+        unit: unit,
+        item_id: itemId,
+        contact_number: contactNumber
+    };
+    
+    console.log('📤 Sending request:', requestPayload);
+    
+    fetch('/api/consumable', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestPayload)
+    })
+    .then(response => {
+        console.log('📥 Action Response Status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('📦 Action Response:', data);
+        
+        if (data.success) {
+            updateDebugPanel(`✅ ${selectedAction} completed!`);
+            showStatus(`✅ ${data.message}`, 'success');
+            disableSpecificButton(action);
+        } else {
+            updateDebugPanel(`❌ ${selectedAction} failed`);
+            showStatus(`❌ Failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Action error:', error);
+        updateDebugPanel(`❌ Error: ${error.message}`);
+        showStatus(`❌ Failed: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        disableActionButtons(false);
+    });
+}
+
+
+
 function disableSpecificButton(action) {
     const actionToButtonId = {
         'repair': 'repairBtn',
         'user_training': 'trainingBtn',
         'one_time_service': 'maintenanceBtn',
+        'consumable_request': 'consumableBtn',
         'consumer_request': 'statusBtn'
     };
     

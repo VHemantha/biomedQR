@@ -307,6 +307,16 @@ h2 {
     border-color: transparent;
 }
 
+.action-btn.consumable {
+    border-color: #ffa500;
+}
+
+.action-btn.consumable:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ffa500 0%, #ff6b6b 100%);
+    color: white;
+    border-color: transparent;
+}
+
 .action-btn.status {
     border-color: #4facfe;
 }
