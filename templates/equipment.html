@@ -116,7 +116,7 @@
         <div>One time service request</div>
     </button>
 
-    <button class="action-btn consumable" onclick="selectAction('consumer_request')" id="consumableBtn" disabled>
+    <button class="action-btn consumable" onclick="selectActionConsumable('ConsumableRequest')" id="consumableBtn" disabled>
         <div class="action-icon">🛒</div>
         <div>Consumable Request</div>
     </button>
@@ -632,7 +632,7 @@ function selectActionConsumable(action) {
 
     document.getElementById('form-contactNumber').style.borderColor = '#667eea';
 
-    const actionNames =  'Consumable Request';
+    const actionNames =  'ConsumableRequest';
     
     
     console.log('🔧 Action selected:', selectedAction);
