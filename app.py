@@ -280,14 +280,30 @@ def handle_consumable_request():
 
         action_titles = f"Consumable Request - Item {equipment_id}"
 
-        # API payload for consumable request - only required fields
+        userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
+
+        # API payload for consumable request - matching structure from action handler
         api_data = {
             'title': action_titles,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-            'requestType': 'Consumable Request',
+            'userName': userID,
+            'currentDate': current_date,
             'area': area,
+            'location': location,
+            'productModel': unit_code,
+            'serialNumber': serial_number,
+            'productLocation': hospital,
             'hospital': hospital,
-            'location': location
+            'requestType': 'Consumable Request',
+            'supplierName': supplier_name,
+            'unit': unit,
+            'itemID': item_id,
+            'contactPerson': None,
+            'conactTel': contact_number,
+            'installationDate': None,
+            'productType': None,
+            'warrantyExpireDate': None,
+            'unit1': unit,
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }
 
         print(f"📤 Sending Consumable Request to API: {json.dumps(api_data, indent=2)}")
