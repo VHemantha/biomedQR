@@ -7,8 +7,8 @@ import os
 app = Flask(__name__)
 
 # Configuration
-CLIENT_ID = 'E7NKOOGKXQPXLF36KEEQPWPMQF5AHI2ZFUQAYBMT'
-CLIENT_SECRET = 'i2HMGBswdoVL1Ta1r084XIU8ZrR9TBODtxIuFQcV2_fse5iuAfMF83VZHT-c6c_GiitngkEP'
+CLIENT_ID = 'WHL5UBGONVTWJAKCBYUC3WKF3KK2AYTLJYPVBDHP'
+CLIENT_SECRET = 'EY8qYHICL8M7Qc690nFcohD5IRD-sjt9CGUng68OMpzHz4ru5xkpiVIL5ITK3jCHET7bqiZG'
 TOKEN_URL = 'https://app.workhub24.com/api/auth/token'
 API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wd9e53c83d2/cards'
 CONS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/w7a45294262/cards'
@@ -37,6 +37,7 @@ def get_access_token():
                                })
         
         if response.status_code == 200:
+            print(f"Access token obtained successfully{response}")
             data = response.json()
             access_token = data.get('token') or data.get('access_token')
             token_expiry = datetime.now().timestamp() + 3600  # Assume 1 hour expiry
