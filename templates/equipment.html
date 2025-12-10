@@ -659,7 +659,7 @@ function selectActionConsumable(action) {
     console.log('📤 Sending consumable request:', requestPayload);
 
     // Try using the main /api/action endpoint first since it has working auth
-    fetch('/api/action', {
+    fetch('/api/CR', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
