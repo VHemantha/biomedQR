@@ -614,7 +614,7 @@ function selectActionConsumable(action) {
     }
 
     contactNumber = document.getElementById('form-contactNumber').value.trim();
-    
+
     if (!contactNumber) {
         showStatus('⚠️ Please enter a contact number', 'error');
         document.getElementById('form-contactNumber').focus();
@@ -634,19 +634,19 @@ function selectActionConsumable(action) {
 
     const selectedAction = 'Consumable Request';
 
-
     console.log('🔧 Action selected:', selectedAction);
     updateDebugPanel(`Submitting ${selectedAction}...`);
-    
+
     disableActionButtons(true);
-    
+
     showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
-    
+
+    // Use the same endpoint as other actions since they share the same authentication
     const requestPayload = {
-        action: action,
+        action: 'consumable_request',  // Standardized action name
         equipment_id: currentEquipmentId,
         area: area,
-        location: equipmentLocation,  // ✅ FIXED - using equipmentLocation
+        location: equipmentLocation,
         hospital: hospital,
         unit_code: unitCode,
         serial_number: serialNumber,
@@ -655,10 +655,11 @@ function selectActionConsumable(action) {
         item_id: itemId,
         contact_number: contactNumber
     };
-    
-    console.log('📤 Sending request:', requestPayload);
-    
-    fetch('/api/CR', {
+
+    console.log('📤 Sending consumable request:', requestPayload);
+
+    // Try using the main /api/action endpoint first since it has working auth
+    fetch('/api/action', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -666,18 +667,29 @@ function selectActionConsumable(action) {
         body: JSON.stringify(requestPayload)
     })
     .then(response => {
-        console.log('📥 Action Response Status:', response.status);
+        console.log('📥 Response Status:', response.status);
+        if (!response.ok && response.status === 400) {
+            // If /api/action doesn't support consumable_request, try /api/CR
+            console.log('⚠️ Trying alternate endpoint /api/CR');
+            return fetch('/api/CR', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestPayload)
+            }).then(r => r.json());
+        }
         return response.json();
     })
     .then(data => {
         console.log('📦 Action Response:', data);
-        
+
         if (data.success) {
             updateDebugPanel(`✅ ${selectedAction} completed!`);
             showStatus(`✅ ${data.message}`, 'success');
-            disableSpecificButton(action);
+            disableSpecificButton('consumable_request');
         } else {
-            updateDebugPanel(`❌ ${selectedAction} failed`);
+            updateDebugPanel(`❌ ${selectedAction} failed: ${data.error}`);
             showStatus(`❌ Failed: ${data.error}`, 'error');
         }
     })

@@ -203,7 +203,8 @@ def handle_action():
             'repair': f'Repair Request - Item {equipment_id}',
             'user_training': f'User Training - Item {equipment_id}',
             'one_time_service': f'One Time Service Request - Item {equipment_id}',
-            'consumer_request': f'Consumer Request - Item {equipment_id}'
+            'consumer_request': f'Consumer Request - Item {equipment_id}',
+            'consumable_request': f'Consumable Request - Item {equipment_id}'
         }
 
         if action not in action_titles:
@@ -236,9 +237,14 @@ def handle_action():
         }
         
         print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
-        
-        result = make_api_request(api_data)
-        
+
+        # Route consumable requests to the consumable endpoint
+        if action == 'consumable_request':
+            print(f"🔄 Routing to CONSUMABLE endpoint: {CONS_API_ENDPOINT}")
+            result = make_api_request_consumable(api_data)
+        else:
+            result = make_api_request(api_data)
+
         return jsonify({
             'success': True,
             'message': f'{action.replace("_", " ").title()} request submitted successfully!',
@@ -282,28 +288,17 @@ def handle_consumable_request():
 
         userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
 
-        # API payload for consumable request - matching structure from action handler
+        # API payload for consumable request - using feildEngineer field from curl example
         api_data = {
             'title': action_titles,
-            'userName': userID,
-            'currentDate': current_date,
+            'feildEngineer': userID,
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'area': area,
             'location': location,
-            'productModel': unit_code,
-            'serialNumber': serial_number,
-            'productLocation': hospital,
             'hospital': hospital,
             'requestType': 'Consumable Request',
-            'supplierName': supplier_name,
-            'unit': unit,
-            'itemID': item_id,
-            'contactPerson': None,
-            'conactTel': contact_number,
-            'installationDate': None,
-            'productType': None,
-            'warrantyExpireDate': None,
-            'unit1': unit,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+            'contactPerson1': None,
+            'conactNumber': contact_number
         }
 
         print(f"📤 Sending Consumable Request to API: {json.dumps(api_data, indent=2)}")
