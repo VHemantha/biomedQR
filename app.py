@@ -84,11 +84,13 @@ def make_api_request(data):
 
 
 def make_api_request_consumable(data):
-    """Make API POST request with proper authentication"""
+    """Make API POST request with proper authentication for consumable requests"""
     token = get_access_token()
     if not token:
         raise Exception('Failed to obtain access token')
-    
+
+    print(f"🔑 Using token: {token[:20]}...")
+
     try:
         response = requests.post(CONS_API_ENDPOINT,
                                headers={
@@ -97,11 +99,14 @@ def make_api_request_consumable(data):
                                    'Accept': 'application/json'
                                },
                                json=data)
-        
-        print(f"API Response Status: {response.status_code}")
+
+        print(f"📥 Consumable API Response Status: {response.status_code}")
+        print(f"📥 Response Headers: {dict(response.headers)}")
+        print(f"📥 Response Body: {response.text}")
+
         if response.status_code in [200, 201]:
             result = response.json()
-            print(f"API Response Data: {result}")
+            print(f"✅ API Response Data: {result}")
             return result
         else:
             error_text = response.text
@@ -110,10 +115,12 @@ def make_api_request_consumable(data):
                 error_message = error_json.get('message') or error_json.get('error') or error_text
             except:
                 error_message = error_text
-            
+
+            print(f"❌ API Error: {error_message}")
             raise Exception(f"API request failed ({response.status_code}): {error_message}")
-            
+
     except requests.exceptions.RequestException as e:
+        print(f"❌ Network error: {str(e)}")
         raise Exception(f"Network error: {str(e)}")
 
 
@@ -270,22 +277,21 @@ def handle_consumable_request():
             return jsonify({'error': 'Contact number is required'}), 400
         
         current_date = datetime.now().strftime('%Y-%m-%d')
-        
-        action_titles = f"consumable Request - Item {equipment_id}"
 
-        
-        userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
-        
+        action_titles = f"Consumable Request - Item {equipment_id}"
+
         # API payload for consumable request - only required fields
         api_data = {
+            'title': action_titles,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-            'requestType': action.replace('_', ' ').title(),
+            'requestType': 'Consumable Request',
             'area': area,
             'hospital': hospital,
             'location': location
         }
-        
-        print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
+
+        print(f"📤 Sending Consumable Request to API: {json.dumps(api_data, indent=2)}")
+        print(f"📤 Endpoint: {CONS_API_ENDPOINT}")
         
         result = make_api_request_consumable(api_data)
         
