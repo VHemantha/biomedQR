@@ -276,20 +276,14 @@ def handle_consumable_request():
         
         userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
         
-        # API payload with ALL fields including area and location
+        # API payload for consumable request - only required fields
         api_data = {
-                    'title': action_titles,  # string - matches directly
-                    'feildEngineer': userID,  # user - matches directly (note: typo "feild" preserved)
-                    'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),  # date - remove microseconds for date type
-                    'area': area,  # text - matches directly
-                    'productModel': unit_code,  # text - matches directly
-                    'serialNumber': serial_number,  # text - matches directly
-                    'hospital': hospital,  # text - matches directly
-                    'requestType': action.replace('_', ' ').title(),  # text - matches directly
-                    'contactPerson1': None,  # text - mapped from 'contactPerson'
-                    'conactNumber': contact_number,  # text - mapped from 'conactTel'
-                    'remarks': None  # text - general remarks field (optional)
-                }
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+            'requestType': action.replace('_', ' ').title(),
+            'area': area,
+            'hospital': hospital,
+            'location': location
+        }
         
         print(f"📤 Sending to API: {json.dumps(api_data, indent=2)}")
         
