@@ -289,17 +289,28 @@ def handle_consumable_request():
 
         userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
 
-        # API payload for consumable request - using feildEngineer field from curl example
+        # API payload for consumable request - matching all fields from handle_action
         api_data = {
             'title': action_titles,
-            'feildEngineer': userID,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
+            'userName': userID,
+            'currentDate': current_date,
             'area': area,
             'location': location,
+            'productModel': unit_code,
+            'serialNumber': serial_number,
+            'productLocation': hospital,
             'hospital': hospital,
             'requestType': 'Consumable Request',
-            'contactPerson1': None,
-            'conactNumber': contact_number
+            'supplierName': supplier_name,
+            'unit': unit,
+            'itemID': item_id,
+            'contactPerson': None,
+            'conactTel': contact_number,
+            'installationDate': None,
+            'productType': None,
+            'warrantyExpireDate': None,
+            'unit1': unit,
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }
 
         print(f"📤 Sending Consumable Request to API: {json.dumps(api_data, indent=2)}")
