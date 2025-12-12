@@ -288,7 +288,7 @@ def handle_consumable_request():
 
         action_titles = f"Consumable Request - Item {equipment_id}"
 
-        userID = 'QF7ZMKH4ECXD3PIMIFLILEZOKKLIRPOY'
+        userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
