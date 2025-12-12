@@ -694,7 +694,7 @@ function selectActionConsumable(action) {
         }
     })
     .catch(error => {
-        console.error('❌ Action error:', error);
+        console.error('Error Change', error);
         updateDebugPanel(`❌ Error: ${error.message}`);
         showStatus(`❌ Failed: ${error.message}`, 'error');
     })

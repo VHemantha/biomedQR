@@ -97,7 +97,8 @@ def make_api_request_consumable(data):
                                headers={
                                    'Authorization': f'Bearer {token}',
                                    'Content-Type': 'application/json',
-                                   'Accept': 'application/json'
+                                   'Accept': 'application/json',
+                                   'User-Agent' : 'Mozilla/5.0 (Linux; Android 16; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.12.45 Mobile Safari/537.36'
                                },
                                json=data)
 
