@@ -243,7 +243,7 @@ def handle_action():
         # Route consumable requests to the consumable endpoint
         if action == 'consumable_request':
             print(f"🔄 Routing to CONSUMABLE endpoint: {CONS_API_ENDPOINT}")
-            result = make_api_request_consumable(api_data)
+            result = make_api_request(api_data)
         else:
             result = make_api_request(api_data)
 
@@ -252,81 +252,113 @@ def handle_action():
             'message': f'{action.replace("_", " ").title()} request submitted successfully!',
             'data': result
         })
-        
+
     except Exception as e:
         print(f"❌ Action failed: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
-    
-    #CONSUMABLE REQUEST HANDLER
+
+    # CONSUMABLE REQUEST HANDLER
 @app.route('/api/CR', methods=['POST'])
 def handle_consumable_request():
     """Handle consumable request via API"""
     try:
+        # Get and validate request data
         data = request.get_json()
-        action = data.get('action')
-        equipment_id = data.get('equipment_id')
-        area = data.get('area') or ''
-        location = data.get('location') or ''
-        hospital = data.get('hospital') or ''
-        unit_code = data.get('unit_code') or ''
-        serial_number = data.get('serial_number') or ''
-        supplier_name = data.get('supplier_name') or ''
-        unit = data.get('unit') or ''
-        item_id = data.get('item_id') or ''
-        contact_number = data.get('contact_number') or ''
-        
-        if not action or not equipment_id:
-            return jsonify({'error': 'Missing action or equipment_id'}), 400
-        
+
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No JSON data received'
+            }), 400
+
+        # Extract all fields with proper validation
+        action = data.get('action', 'consumable_request')
+        equipment_id = data.get('equipment_id', '').strip()
+        area = data.get('area', '').strip()
+        location = data.get('location', '').strip()
+        hospital = data.get('hospital', '').strip()
+        unit_code = data.get('unit_code', '').strip()
+        serial_number = data.get('serial_number', '').strip()
+        supplier_name = data.get('supplier_name', '').strip()
+        unit = data.get('unit', '').strip()
+        item_id = data.get('item_id', '').strip()
+        contact_number = data.get('contact_number', '').strip()
+
+        # Validation
+        if not equipment_id:
+            return jsonify({
+                'success': False,
+                'error': 'equipment_id is required'
+            }), 400
+
         if not contact_number:
-            return jsonify({'error': 'Contact number is required'}), 400
-        
+            return jsonify({
+                'success': False,
+                'error': 'Contact number is required'
+            }), 400
+
+        # Validate contact number format
+        if not contact_number or len(contact_number) < 7:
+            return jsonify({
+                'success': False,
+                'error': 'Please provide a valid contact number (minimum 7 digits)'
+            }), 400
+
+        print('=' * 60)
+        print('🔵 CONSUMABLE REQUEST HANDLER')
+        print('=' * 60)
+        print(f"Equipment ID: {equipment_id}")
+        print(f"Item ID: {item_id}")
+        print(f"Contact: {contact_number}")
+        print(f"Hospital: {hospital}")
+        print(f"Area: {area}")
+        print(f"Location: {location}")
+        print('=' * 60)
+
         current_date = datetime.now().strftime('%Y-%m-%d')
-
-        action_titles = f"Consumable Request - Item {equipment_id}"
-
+        action_title = f"Consumable Request - Item{item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
-            'title': action_titles,
-            'userName': userID,
-            'currentDate': current_date,
+            'title': action_title,
             'area': area,
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
+            'requestType' : 'Consumable Request',
             'location': location,
-            'productModel': unit_code,
-            'serialNumber': serial_number,
-            'productLocation': hospital,
             'hospital': hospital,
-            'requestType': 'Consumable Request',
-            'supplierName': supplier_name,
-            'unit': unit,
-            'itemID': item_id,
-            'contactPerson': None,
-            'conactTel': contact_number,
-            'installationDate': None,
-            'productType': None,
-            'warrantyExpireDate': None,
-            'unit1': unit,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+            'serialNumber': serial_number,
+            'productModel': supplier_name
+            
         }
 
-        print(f"📤 Sending Consumable Request to API: {json.dumps(api_data, indent=2)}")
+        print(f"📤 Sending Consumable Request to API:")
+        print(json.dumps(api_data, indent=2))
         print(f"📤 Endpoint: {CONS_API_ENDPOINT}")
-        
+        print('=' * 60)
+
+        # Make API call
         result = make_api_request_consumable(api_data)
-        
+
+        print('✅ Consumable request submitted successfully')
+        print('=' * 60)
+
         return jsonify({
             'success': True,
-            'message': f'{action.replace("_", " ").title()} request submitted successfully!',
+            'message': 'Consumable Request submitted successfully!',
             'data': result
-        })
-        
+        }), 200
+
     except Exception as e:
-        print(f"❌ Action failed: {str(e)}")
+        print('=' * 60)
+        print(f"❌ Consumable Request Failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print('=' * 60)
+
         return jsonify({
             'success': False,
             'error': str(e)

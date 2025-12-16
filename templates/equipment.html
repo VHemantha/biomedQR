@@ -634,16 +634,16 @@ function selectActionConsumable(action) {
 
     const selectedAction = 'Consumable Request';
 
-    console.log('🔧 Action selected:', selectedAction);
+    console.log('='.repeat(50));
+    console.log('🔧 CONSUMABLE REQUEST SELECTED');
+    console.log('='.repeat(50));
     updateDebugPanel(`Submitting ${selectedAction}...`);
 
     disableActionButtons(true);
-
     showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
 
-    // Use the same endpoint as other actions since they share the same authentication
     const requestPayload = {
-        action: 'consumable_request',  // Standardized action name
+        action: 'consumable_request',
         equipment_id: currentEquipmentId,
         area: area,
         location: equipmentLocation,
@@ -656,50 +656,63 @@ function selectActionConsumable(action) {
         contact_number: contactNumber
     };
 
-    console.log('📤 Sending consumable request:', requestPayload);
+    console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
+    console.log('📤 Endpoint: /api/CR');
+    console.log('='.repeat(50));
 
-    // Try using the main /api/action endpoint first since it has working auth
     fetch('/api/CR', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify(requestPayload)
     })
     .then(response => {
         console.log('📥 Response Status:', response.status);
-        if (!response.ok && response.status === 400) {
-            // If /api/action doesn't support consumable_request, try /api/CR
-            console.log('⚠️ Trying alternate endpoint /api/CR');
-            return fetch('/api/CR', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestPayload)
-            }).then(r => r.json());
-        }
-        return response.json();
+        console.log('📥 Response OK:', response.ok);
+
+        // Always try to parse JSON response
+        return response.json().then(data => {
+            // Attach the status to the data object
+            data._httpStatus = response.status;
+            data._httpOk = response.ok;
+            return data;
+        }).catch(parseError => {
+            // If JSON parsing fails, return error object
+            console.error('❌ JSON Parse Error:', parseError);
+            throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
+        });
     })
     .then(data => {
-        console.log('📦 Action Response:', data);
+        console.log('📦 Response Data:', data);
+        console.log('='.repeat(50));
 
         if (data.success) {
             updateDebugPanel(`✅ ${selectedAction} completed!`);
-            showStatus(`✅ ${data.message}`, 'success');
+            showStatus(`✅ ${data.message || 'Request submitted successfully!'}`, 'success');
             disableSpecificButton('consumable_request');
         } else {
-            updateDebugPanel(`❌ ${selectedAction} failed: ${data.error}`);
-            showStatus(`❌ Failed: ${data.error}`, 'error');
+            const errorMsg = data.error || 'Unknown error occurred';
+            console.error('❌ API Error:', errorMsg);
+            updateDebugPanel(`❌ ${selectedAction} failed: ${errorMsg}`);
+            showStatus(`❌ Failed: ${errorMsg}`, 'error');
         }
     })
     .catch(error => {
-        console.error('Error Change', error);
+        console.error('='.repeat(50));
+        console.error('❌ Request Failed:', error);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
+        console.error('='.repeat(50));
+
         updateDebugPanel(`❌ Error: ${error.message}`);
         showStatus(`❌ Failed: ${error.message}`, 'error');
     })
     .finally(() => {
         disableActionButtons(false);
+        console.log('🏁 Request completed');
+        console.log('='.repeat(50));
     });
 }
 
