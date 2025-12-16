@@ -115,11 +115,12 @@
         <div class="action-icon">⚙️</div>
         <div>One time service request</div>
     </button>
-    
-    <button class="action-btn status" onclick="selectAction('consumer_request')" id="statusBtn" disabled>
-        <div class="action-icon">📊</div>
-        <div>Consumer request</div>
+
+    <button class="action-btn consumable" onclick="selectActionConsumable('ConsumableRequest')" id="consumableBtn" disabled>
+        <div class="action-icon">💉</div>
+        <div>Consumable Request</div>
     </button>
+
 </div>
 
 <div id="statusMessage"></div>
@@ -544,6 +545,7 @@ function selectAction(action) {
         'repair': 'Repair',
         'user_training': 'User Training',
         'one_time_service': 'One Time Service',
+        'consumable_request': 'Consumable Request',
         'consumer_request': 'Consumer Request'
     };
     
@@ -605,11 +607,123 @@ function selectAction(action) {
     });
 }
 
+function selectActionConsumable(action) {
+    if (!masterDataLoaded) {
+        showStatus('⚠️ Please load master data first', 'error');
+        return;
+    }
+
+    contactNumber = document.getElementById('form-contactNumber').value.trim();
+
+    if (!contactNumber) {
+        showStatus('⚠️ Please enter a contact number', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    const contactRegex = /^[\d\s\+\-\(\)]{7,15}$/;
+    if (!contactRegex.test(contactNumber)) {
+        showStatus('⚠️ Please enter a valid contact number (7-15 digits)', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    document.getElementById('form-contactNumber').style.borderColor = '#667eea';
+
+    const selectedAction = 'Consumable Request';
+
+    console.log('='.repeat(50));
+    console.log('🔧 CONSUMABLE REQUEST SELECTED');
+    console.log('='.repeat(50));
+    updateDebugPanel(`Submitting ${selectedAction}...`);
+
+    disableActionButtons(true);
+    showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
+
+    const requestPayload = {
+        action: 'consumable_request',
+        equipment_id: currentEquipmentId,
+        area: area,
+        location: equipmentLocation,
+        hospital: hospital,
+        unit_code: unitCode,
+        serial_number: serialNumber,
+        supplier_name: supplierName,
+        unit: unit,
+        item_id: itemId,
+        contact_number: contactNumber
+    };
+
+    console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
+    console.log('📤 Endpoint: /api/CR');
+    console.log('='.repeat(50));
+
+    fetch('/api/CR', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestPayload)
+    })
+    .then(response => {
+        console.log('📥 Response Status:', response.status);
+        console.log('📥 Response OK:', response.ok);
+
+        // Always try to parse JSON response
+        return response.json().then(data => {
+            // Attach the status to the data object
+            data._httpStatus = response.status;
+            data._httpOk = response.ok;
+            return data;
+        }).catch(parseError => {
+            // If JSON parsing fails, return error object
+            console.error('❌ JSON Parse Error:', parseError);
+            throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
+        });
+    })
+    .then(data => {
+        console.log('📦 Response Data:', data);
+        console.log('='.repeat(50));
+
+        if (data.success) {
+            updateDebugPanel(`✅ ${selectedAction} completed!`);
+            showStatus(`✅ ${data.message || 'Request submitted successfully!'}`, 'success');
+            disableSpecificButton('consumable_request');
+        } else {
+            const errorMsg = data.error || 'Unknown error occurred';
+            console.error('❌ API Error:', errorMsg);
+            updateDebugPanel(`❌ ${selectedAction} failed: ${errorMsg}`);
+            showStatus(`❌ Failed: ${errorMsg}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('='.repeat(50));
+        console.error('❌ Request Failed:', error);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
+        console.error('='.repeat(50));
+
+        updateDebugPanel(`❌ Error: ${error.message}`);
+        showStatus(`❌ Failed: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        disableActionButtons(false);
+        console.log('🏁 Request completed');
+        console.log('='.repeat(50));
+    });
+}
+
+
+
 function disableSpecificButton(action) {
     const actionToButtonId = {
         'repair': 'repairBtn',
         'user_training': 'trainingBtn',
         'one_time_service': 'maintenanceBtn',
+        'consumable_request': 'consumableBtn',
         'consumer_request': 'statusBtn'
     };
     
