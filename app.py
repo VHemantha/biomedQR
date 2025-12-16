@@ -243,7 +243,7 @@ def handle_action():
         # Route consumable requests to the consumable endpoint
         if action == 'consumable_request':
             print(f"🔄 Routing to CONSUMABLE endpoint: {CONS_API_ENDPOINT}")
-            result = make_api_request_consumable(api_data)
+            result = make_api_request(api_data)
         else:
             result = make_api_request(api_data)
 
@@ -325,24 +325,7 @@ def handle_consumable_request():
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
             'title': action_title,
-            'userName': userID,
-            'currentDate': current_date,
             'area': area,
-            'location': location,
-            'productModel': unit_code,
-            'serialNumber': serial_number,
-            'productLocation': hospital,
-            'hospital': hospital,
-            'requestType': 'Consumable Request',
-            'supplierName': supplier_name,
-            'unit': unit,
-            'itemID': item_id,
-            'contactPerson': None,
-            'conactTel': contact_number,
-            'installationDate': None,
-            'productType': None,
-            'warrantyExpireDate': None,
-            'unit1': unit,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }
 
