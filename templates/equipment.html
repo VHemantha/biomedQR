@@ -634,7 +634,6 @@ function selectActionConsumable(action) {
 
     const selectedAction = 'Consumable Request';
 
-<<<<<<< HEAD
     console.log('='.repeat(50));
     console.log('🔧 CONSUMABLE REQUEST SELECTED');
     console.log('='.repeat(50));
@@ -645,18 +644,6 @@ function selectActionConsumable(action) {
 
     const requestPayload = {
         action: 'consumable_request',
-=======
-    console.log('🔧 Action selected:', selectedAction);
-    updateDebugPanel(`Submitting ${selectedAction}...`);
-
-    disableActionButtons(true);
-
-    showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
-
-    // Use the same endpoint as other actions since they share the same authentication
-    const requestPayload = {
-        action: 'consumable_request',  // Standardized action name
->>>>>>> 15cd58688ae8d17379a94c808aa20aa8726f2b03
         equipment_id: currentEquipmentId,
         area: area,
         location: equipmentLocation,
@@ -669,30 +656,20 @@ function selectActionConsumable(action) {
         contact_number: contactNumber
     };
 
-<<<<<<< HEAD
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
     console.log('📤 Endpoint: /api/CR');
     console.log('='.repeat(50));
 
-=======
-    console.log('📤 Sending consumable request:', requestPayload);
-
-    // Try using the main /api/action endpoint first since it has working auth
->>>>>>> 15cd58688ae8d17379a94c808aa20aa8726f2b03
     fetch('/api/CR', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-<<<<<<< HEAD
             'Accept': 'application/json'
-=======
->>>>>>> 15cd58688ae8d17379a94c808aa20aa8726f2b03
         },
         body: JSON.stringify(requestPayload)
     })
     .then(response => {
         console.log('📥 Response Status:', response.status);
-<<<<<<< HEAD
         console.log('📥 Response OK:', response.ok);
 
         // Always try to parse JSON response
@@ -729,45 +706,13 @@ function selectActionConsumable(action) {
         console.error('Error Stack:', error.stack);
         console.error('='.repeat(50));
 
-=======
-        if (!response.ok && response.status === 400) {
-            // If /api/action doesn't support consumable_request, try /api/CR
-            console.log('⚠️ Trying alternate endpoint /api/CR');
-            return fetch('/api/CR', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestPayload)
-            }).then(r => r.json());
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('📦 Action Response:', data);
-
-        if (data.success) {
-            updateDebugPanel(`✅ ${selectedAction} completed!`);
-            showStatus(`✅ ${data.message}`, 'success');
-            disableSpecificButton('consumable_request');
-        } else {
-            updateDebugPanel(`❌ ${selectedAction} failed: ${data.error}`);
-            showStatus(`❌ Failed: ${data.error}`, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error Change', error);
->>>>>>> 15cd58688ae8d17379a94c808aa20aa8726f2b03
         updateDebugPanel(`❌ Error: ${error.message}`);
         showStatus(`❌ Failed: ${error.message}`, 'error');
     })
     .finally(() => {
         disableActionButtons(false);
-<<<<<<< HEAD
         console.log('🏁 Request completed');
         console.log('='.repeat(50));
-=======
->>>>>>> 15cd58688ae8d17379a94c808aa20aa8726f2b03
     });
 }
 
