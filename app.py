@@ -319,14 +319,14 @@ def handle_consumable_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Consumable Request - Item {equipment_id}"
+        action_title = "Consumable Request - Item"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
             'title': action_title,
             'area': area,
-            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
+            #'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
         }
 
         print(f"📤 Sending Consumable Request to API:")
