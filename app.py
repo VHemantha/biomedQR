@@ -487,7 +487,8 @@ def handle_userT_request():
             'hospital': hospital,
             'modality': product_model,
             'prodcutSerielNumber': serial_number,
-            'productModel': product_model
+            'productModel': product_model,
+            'requesterMobile': contact_number
 
         }
 
