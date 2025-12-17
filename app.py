@@ -484,7 +484,7 @@ def handle_userT_request():
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
-            'hospital': hospital,
+            'hospitalDepartment': hospital,
             'modality': product_model,
             'prodcutSerielNumber': serial_number,
             'productModel': product_model,
