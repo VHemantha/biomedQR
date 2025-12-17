@@ -80,6 +80,11 @@
         <label for="form-unit">Unit:</label>
         <input type="text" id="form-unit" readonly style="background-color: #f5f5f5;">
     </div>
+
+    <div class="form-group">
+        <label for="form-unit">productModel:</label>
+        <input type="text" id="form-productModel" readonly style="background-color: #f5f5f5;">
+    </div>
     
     <div class="form-group">
         <label for="form-createdDate">Created Date:</label>
@@ -106,7 +111,7 @@
         <div>Repair</div>
     </button>
     
-    <button class="action-btn training" onclick="selectAction('user_training')" id="trainingBtn" disabled>
+    <button class="action-btn training" onclick="selectActionUserTraining('user_training')" id="trainingBtn" disabled>
         <div class="action-icon">📚</div>
         <div>User Training</div>
     </button>
@@ -138,6 +143,7 @@ let serialNumber = `{{ serial_number }}`;
 let supplierName = `{{ supplier_name }}`;
 let unit = `{{ unit }}`;
 let itemId = `{{ item_id }}`;
+let productModel = `{{ productModel }}`;
 let area = '';
 let equipmentLocation = '';  // ✅ RENAMED from 'location' to avoid conflict
 let masterDataLoaded = false;
@@ -441,9 +447,10 @@ function fetchAndMapMasterData() {
                 serialNumber = apiData.serialNumber || serialNumber;
                 supplierName = apiData.supplierName || supplierName;
                 unit = apiData.unit || unit;
+                productModel = apiData.productModel || productModel;
 
                 console.log('✅ Data mapped successfully');
-                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit });
+                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit, productModel });
                 updateDebugPanel('✅ Data loaded and mapped successfully!');
 
                 // Show the form section with smooth scroll
@@ -569,7 +576,8 @@ function selectAction(action) {
         supplier_name: supplierName,
         unit: unit,
         item_id: itemId,
-        contact_number: contactNumber
+        contact_number: contactNumber,
+        product_model: productModel
     };
     
     console.log('📤 Sending request:', requestPayload);
@@ -653,7 +661,8 @@ function selectActionConsumable(action) {
         supplier_name: supplierName,
         unit: unit,
         item_id: itemId,
-        contact_number: contactNumber
+        contact_number: contactNumber,
+        product_model: productModel
     };
 
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
@@ -716,7 +725,115 @@ function selectActionConsumable(action) {
     });
 }
 
+function selectActionUserTraining(action) {
+    if (!masterDataLoaded) {
+        showStatus('⚠️ Please load master data first', 'error');
+        return;
+    }
 
+    contactNumber = document.getElementById('form-contactNumber').value.trim();
+
+    if (!contactNumber) {
+        showStatus('⚠️ Please enter a contact number', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    const contactRegex = /^[\d\s\+\-\(\)]{7,15}$/;
+    if (!contactRegex.test(contactNumber)) {
+        showStatus('⚠️ Please enter a valid contact number (7-15 digits)', 'error');
+        document.getElementById('form-contactNumber').focus();
+        document.getElementById('form-contactNumber').style.borderColor = '#fc466b';
+        return;
+    }
+
+    document.getElementById('form-contactNumber').style.borderColor = '#667eea';
+
+    const selectedAction = 'User Training Request';
+
+    console.log('='.repeat(50));
+    console.log('🔧 USER TRAINING REQUEST SELECTED');
+    console.log('='.repeat(50));
+    updateDebugPanel(`Submitting ${selectedAction}...`);
+
+    disableActionButtons(true);
+    showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
+
+    const requestPayload = {
+        action: 'user_training',
+        equipment_id: currentEquipmentId,
+        area: area,
+        location: equipmentLocation,
+        hospital: hospital,
+        unit_code: unitCode,
+        serial_number: serialNumber,
+        supplier_name: supplierName,
+        unit: unit,
+        item_id: itemId,
+        contact_number: contactNumber,
+        product_model: productModel
+    };
+
+    console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
+    console.log('📤 Endpoint: /api/UserTraining');
+    console.log('='.repeat(50));
+
+    fetch('/api/UserTraining', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestPayload)
+    })
+    .then(response => {
+        console.log('📥 Response Status:', response.status);
+        console.log('📥 Response OK:', response.ok);
+
+        // Always try to parse JSON response
+        return response.json().then(data => {
+            // Attach the status to the data object
+            data._httpStatus = response.status;
+            data._httpOk = response.ok;
+            return data;
+        }).catch(parseError => {
+            // If JSON parsing fails, return error object
+            console.error('❌ JSON Parse Error:', parseError);
+            throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
+        });
+    })
+    .then(data => {
+        console.log('📦 Response Data:', data);
+        console.log('='.repeat(50));
+
+        if (data.success) {
+            updateDebugPanel(`✅ ${selectedAction} completed!`);
+            showStatus(`✅ ${data.message || 'Request submitted successfully!'}`, 'success');
+            disableSpecificButton('user_training');
+        } else {
+            const errorMsg = data.error || 'Unknown error occurred';
+            console.error('❌ API Error:', errorMsg);
+            updateDebugPanel(`❌ ${selectedAction} failed: ${errorMsg}`);
+            showStatus(`❌ Failed: ${errorMsg}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('='.repeat(50));
+        console.error('❌ Request Failed:', error);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
+        console.error('='.repeat(50));
+
+        updateDebugPanel(`❌ Error: ${error.message}`);
+        showStatus(`❌ Failed: ${error.message}`, 'error');
+    })
+    .finally(() => {
+        disableActionButtons(false);
+        console.log('🏁 Request completed');
+        console.log('='.repeat(50));
+    });
+}
 
 function disableSpecificButton(action) {
     const actionToButtonId = {

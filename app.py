@@ -212,6 +212,7 @@ def equipment_actions(item_id):
     serial_number = request.args.get('serial_number', '')
     supplier_name = request.args.get('supplier_name', '')
     unit = request.args.get('unit', '')
+    productModel = request.args.get('productModel', '')
     return render_template('equipment.html', 
                            equipment_id=item_id,
                            hospital=hospital,
@@ -219,7 +220,9 @@ def equipment_actions(item_id):
                            serial_number=serial_number,
                            supplier_name=supplier_name,
                            unit=unit,
-                           item_id=item_id)
+                           item_id=item_id,
+                           productModel=productModel
+                           )
 
 @app.route('/api/action', methods=['POST'])
 def handle_action():
@@ -413,8 +416,8 @@ def handle_consumable_request():
     
     
 @app.route('/api/UserTraining', methods=['POST'])
-def handle_consumable_request():
-    """Handle consumable request via API"""
+def handle_userT_request():
+    """Handle userT request via API"""
     try:
         # Get and validate request data
         data = request.get_json()
@@ -437,6 +440,7 @@ def handle_consumable_request():
         unit = data.get('unit', '').strip()
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
+        product_model = data.get('product_model', '').strip()
 
         # Validation
         if not equipment_id:
@@ -459,7 +463,7 @@ def handle_consumable_request():
             }), 400
 
         print('=' * 60)
-        print('🔵 CONSUMABLE REQUEST HANDLER')
+        print('🔵 USER TRAINING REQUEST HANDLER')
         print('=' * 60)
         print(f"Equipment ID: {equipment_id}")
         print(f"Item ID: {item_id}")
@@ -467,45 +471,46 @@ def handle_consumable_request():
         print(f"Hospital: {hospital}")
         print(f"Area: {area}")
         print(f"Location: {location}")
+        print(f"Product Model: {product_model}")
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Consumable Request - Item{item_id}"
+        action_title = f"User Training Request - Item{item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
-        # API payload for consumable request - matching all fields from handle_action
+        # API payload for user training request
         api_data = {
             'title': action_title,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
-            'requestType' : 'Consumable Request',
             'location': location,
             'hospital': hospital,
-            'serialNumber': serial_number,
-            'productModel': supplier_name
-            
+            'modality': product_model,
+            'prodcutSerielNumber': serial_number,
+            'productModel': product_model
+
         }
 
-        print(f"📤 Sending Consumable Request to API:")
+        print(f"📤 Sending User Training Request to API:")
         print(json.dumps(api_data, indent=2))
-        print(f"📤 Endpoint: {CONS_API_ENDPOINT}")
+        print(f"📤 Endpoint: {USER_TRN_API_ENDPOINT}")
         print('=' * 60)
 
         # Make API call
-        result = make_api_request_consumable(api_data)
+        result = make_api_request_userTraining(api_data)
 
-        print('✅ Consumable request submitted successfully')
+        print('✅ User Training request submitted successfully')
         print('=' * 60)
 
         return jsonify({
             'success': True,
-            'message': 'Consumable Request submitted successfully!',
+            'message': 'User Training Request submitted successfully!',
             'data': result
         }), 200
 
     except Exception as e:
         print('=' * 60)
-        print(f"❌ Consumable Request Failed: {str(e)}")
+        print(f"❌ User Training Request Failed: {str(e)}")
         import traceback
         traceback.print_exc()
         print('=' * 60)
@@ -514,10 +519,10 @@ def handle_consumable_request():
             'success': False,
             'error': str(e)
         }), 500
-         
-    
-    
-    
+
+
+
+
 @app.route('/api/get_master_data/<item_id>', methods=['GET'])
 def get_master_data(item_id):
     """Fetch master data details by itemID with pagination"""
