@@ -13,6 +13,7 @@ TOKEN_URL = 'https://app.workhub24.com/api/auth/token'
 API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wd9e53c83d2/cards'
 CONS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/w7a45294262/cards'
 USER_TRN_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/w938b656364/cards'
+OTS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wb9cbe5aa42/cards'
 # Datatable endpoint to create records when generating QR
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 
@@ -169,6 +170,46 @@ def make_api_request_userTraining(data):
         raise Exception(f"Network error: {str(e)}")
 
 
+def make_api_request_ots(data):
+    """Make API POST request with proper authentication for consumable requests"""
+    token = get_access_token()
+    if not token:
+        raise Exception('Failed to obtain access token')
+
+    print(f"🔑 Using token: {token[:20]}...")
+
+    try:
+        response = requests.post(OTS_API_ENDPOINT,
+                               headers={
+                                   'Authorization': f'Bearer {token}',
+                                   'Content-Type': 'application/json',
+                                   'Accept': 'application/json',
+                                   'User-Agent' : 'Mozilla/5.0 (Linux; Android 16; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.12.45 Mobile Safari/537.36'
+                               },
+                               json=data)
+
+        print(f"📥 Consumable API Response Status: {response.status_code}")
+        print(f"📥 Response Headers: {dict(response.headers)}")
+        print(f"📥 Response Body: {response.text}")
+
+        if response.status_code in [200, 201]:
+            result = response.json()
+            print(f"✅ API Response Data: {result}")
+            return result
+        else:
+            error_text = response.text
+            try:
+                error_json = response.json()
+                error_message = error_json.get('message') or error_json.get('error') or error_text
+            except:
+                error_message = error_text
+
+            print(f"❌ API Error: {error_message}")
+            raise Exception(f"API request failed ({response.status_code}): {error_message}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Network error: {str(e)}")
+        raise Exception(f"Network error: {str(e)}")
 
 
 def create_datatable_record(record_payload):
@@ -522,6 +563,111 @@ def handle_userT_request():
         }), 500
 
 
+@app.route('/api/OTS', methods=['POST'])
+def handle_ots_request():
+    """Handle userT request via API"""
+    try:
+        # Get and validate request data
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No JSON data received'
+            }), 400
+
+        # Extract all fields with proper validation
+        action = data.get('action', 'ots')
+        equipment_id = data.get('equipment_id', '').strip()
+        area = data.get('area', '').strip()
+        location = data.get('location', '').strip()
+        hospital = data.get('hospital', '').strip()
+        unit_code = data.get('unit_code', '').strip()
+        serial_number = data.get('serial_number', '').strip()
+        supplier_name = data.get('supplier_name', '').strip()
+        unit = data.get('unit', '').strip()
+        item_id = data.get('item_id', '').strip()
+        contact_number = data.get('contact_number', '').strip()
+        product_model = data.get('product_model', '').strip()
+
+        # Validation
+        if not equipment_id:
+            return jsonify({
+                'success': False,
+                'error': 'equipment_id is required'
+            }), 400
+
+        if not contact_number:
+            return jsonify({
+                'success': False,
+                'error': 'Contact number is required'
+            }), 400
+
+        # Validate contact number format
+        if not contact_number or len(contact_number) < 7:
+            return jsonify({
+                'success': False,
+                'error': 'Please provide a valid contact number (minimum 7 digits)'
+            }), 400
+
+        print('=' * 60)
+        print('🔵 USER TRAINING REQUEST HANDLER')
+        print('=' * 60)
+        print(f"Equipment ID: {equipment_id}")
+        print(f"Item ID: {item_id}")
+        print(f"Contact: {contact_number}")
+        print(f"Hospital: {hospital}")
+        print(f"Area: {area}")
+        print(f"Location: {location}")
+        print(f"Product Model: {product_model}")
+        print('=' * 60)
+
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        action_title = f"one Time Service Request - Item{item_id}"
+        userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
+
+        # API payload for user training request
+        api_data = {
+            'title': action_title,
+            'itemID': area,
+            'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
+            'location': location,
+            'hospital': hospital,
+            'modality': product_model,
+            'serialNumber1': serial_number,
+            'productModel': product_model,
+            'contactNumber': contact_number
+
+        }
+
+        print(f"📤 Sending User Training Request to API:")
+        print(json.dumps(api_data, indent=2))
+        print(f"📤 Endpoint: {USER_TRN_API_ENDPOINT}")
+        print('=' * 60)
+
+        # Make API call
+        result = make_api_request_ots(api_data)
+
+        print('✅ User Training request submitted successfully')
+        print('=' * 60)
+
+        return jsonify({
+            'success': True,
+            'message': 'User Training Request submitted successfully!',
+            'data': result
+        }), 200
+
+    except Exception as e:
+        print('=' * 60)
+        print(f"❌ User Training Request Failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print('=' * 60)
+
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
 @app.route('/api/get_master_data/<item_id>', methods=['GET'])
