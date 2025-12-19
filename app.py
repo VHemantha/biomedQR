@@ -798,7 +798,7 @@ def handle_repair_request():
         print('=' * 60)
 
         # Make API call
-        result = make_api_request_ots(api_data)
+        result = make_api_request_repair(api_data)
 
         print('✅ User Training request submitted successfully')
         print('=' * 60)

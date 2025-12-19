@@ -101,7 +101,7 @@
 
 <!-- Action Options (Initially Disabled) -->
 <div class="action-options" id="actionOptions" style="opacity: 0.5; pointer-events: none;">
-    <button class="action-btn repair" onclick="selectAction('repair')" id="repairBtn" disabled>
+    <button class="action-btn repair" onclick="selectActionRepair('repair')" id="repairBtn" disabled>
         <div class="action-icon">🔧</div>
         <div>Repair</div>
     </button>
@@ -139,7 +139,7 @@ let unit = `{{ unit }}`;
 let itemId = `{{ item_id }}`;
 let productModel = `{{ productModel }}`;
 let area = '';
-let equipmentLocation = '';  // ✅ RENAMED from 'location' to avoid conflict
+let equipmentLocation = '';
 let masterDataLoaded = false;
 let contactNumber = '';
 let autoScannedData = false;
@@ -433,9 +433,9 @@ function fetchAndMapMasterData() {
                     document.getElementById('form-contactNumber').value = apiData.contactNumber;
                 }
 
-                // Update local state variables (✅ USING equipmentLocation)
+                // Update local state variables
                 area = apiData.area || '';
-                equipmentLocation = apiData.location || '';  // ✅ FIXED
+                equipmentLocation = apiData.location || '';
                 hospital = apiData.productLocation || hospital;
                 unitCode = apiData.productModel || unitCode;
                 serialNumber = apiData.serialNumber || serialNumber;
@@ -517,14 +517,17 @@ function enableActionButtons() {
     console.log('✅ Action buttons enabled');
 }
 
-function selectAction(action) {
+// ============================================
+// REPAIR REQUEST HANDLER
+// ============================================
+function selectActionRepair(action) {
     if (!masterDataLoaded) {
         showStatus('⚠️ Please load master data first', 'error');
         return;
     }
 
     contactNumber = document.getElementById('form-contactNumber').value.trim();
-    
+
     if (!contactNumber) {
         showStatus('⚠️ Please enter a contact number', 'error');
         document.getElementById('form-contactNumber').focus();
@@ -542,28 +545,21 @@ function selectAction(action) {
 
     document.getElementById('form-contactNumber').style.borderColor = '#667eea';
 
-    const actionNames = {
-        'repair': 'Repair',
-        'user_training': 'User Training',
-        'one_time_service': 'One Time Service',
-        'consumable_request': 'Consumable Request',
-        'consumer_request': 'Consumer Request'
-    };
-    
-    const selectedAction = actionNames[action];
-    
-    console.log('🔧 Action selected:', selectedAction);
+    const selectedAction = 'Repair Request';
+
+    console.log('='.repeat(50));
+    console.log('🔧 REPAIR REQUEST SELECTED');
+    console.log('='.repeat(50));
     updateDebugPanel(`Submitting ${selectedAction}...`);
-    
+
     disableActionButtons(true);
-    
     showStatus(`⏳ ${selectedAction} selected. Processing...`, 'loading');
-    
+
     const requestPayload = {
-        action: action,
+        action: 'repair',
         equipment_id: currentEquipmentId,
         area: area,
-        location: equipmentLocation,  // ✅ FIXED - using equipmentLocation
+        location: equipmentLocation,
         hospital: hospital,
         unit_code: unitCode,
         serial_number: serialNumber,
@@ -573,42 +569,67 @@ function selectAction(action) {
         contact_number: contactNumber,
         product_model: productModel
     };
-    
-    console.log('📤 Sending request:', requestPayload);
-    
-    fetch('/api/action', {
+
+    console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
+    console.log('📤 Endpoint: /api/Repair');
+    console.log('='.repeat(50));
+
+    fetch('/api/repair', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify(requestPayload)
     })
     .then(response => {
-        console.log('📥 Action Response Status:', response.status);
-        return response.json();
+        console.log('📥 Response Status:', response.status);
+        console.log('📥 Response OK:', response.ok);
+
+        return response.json().then(data => {
+            data._httpStatus = response.status;
+            data._httpOk = response.ok;
+            return data;
+        }).catch(parseError => {
+            console.error('❌ JSON Parse Error:', parseError);
+            throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
+        });
     })
     .then(data => {
-        console.log('📦 Action Response:', data);
-        
+        console.log('📦 Response Data:', data);
+        console.log('='.repeat(50));
+
         if (data.success) {
             updateDebugPanel(`✅ ${selectedAction} completed!`);
-            showStatus(`✅ ${data.message}`, 'success');
-            disableSpecificButton(action);
+            showStatus(`✅ ${data.message || 'Request submitted successfully!'}`, 'success');
+            disableSpecificButton('repair');
         } else {
-            updateDebugPanel(`❌ ${selectedAction} failed`);
-            showStatus(`❌ Failed: ${data.error}`, 'error');
+            const errorMsg = data.error || 'Unknown error occurred';
+            console.error('❌ API Error:', errorMsg);
+            updateDebugPanel(`❌ ${selectedAction} failed: ${errorMsg}`);
+            showStatus(`❌ Failed: ${errorMsg}`, 'error');
         }
     })
     .catch(error => {
-        console.error('❌ Action error:', error);
+        console.error('='.repeat(50));
+        console.error('❌ Request Failed:', error);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
+        console.error('='.repeat(50));
+
         updateDebugPanel(`❌ Error: ${error.message}`);
         showStatus(`❌ Failed: ${error.message}`, 'error');
     })
     .finally(() => {
         disableActionButtons(false);
+        console.log('🏁 Request completed');
+        console.log('='.repeat(50));
     });
 }
 
+// ============================================
+// CONSUMABLE REQUEST HANDLER
+// ============================================
 function selectActionConsumable(action) {
     if (!masterDataLoaded) {
         showStatus('⚠️ Please load master data first', 'error');
@@ -675,14 +696,11 @@ function selectActionConsumable(action) {
         console.log('📥 Response Status:', response.status);
         console.log('📥 Response OK:', response.ok);
 
-        // Always try to parse JSON response
         return response.json().then(data => {
-            // Attach the status to the data object
             data._httpStatus = response.status;
             data._httpOk = response.ok;
             return data;
         }).catch(parseError => {
-            // If JSON parsing fails, return error object
             console.error('❌ JSON Parse Error:', parseError);
             throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
         });
@@ -719,6 +737,9 @@ function selectActionConsumable(action) {
     });
 }
 
+// ============================================
+// USER TRAINING REQUEST HANDLER
+// ============================================
 function selectActionUserTraining(action) {
     if (!masterDataLoaded) {
         showStatus('⚠️ Please load master data first', 'error');
@@ -785,14 +806,11 @@ function selectActionUserTraining(action) {
         console.log('📥 Response Status:', response.status);
         console.log('📥 Response OK:', response.ok);
 
-        // Always try to parse JSON response
         return response.json().then(data => {
-            // Attach the status to the data object
             data._httpStatus = response.status;
             data._httpOk = response.ok;
             return data;
         }).catch(parseError => {
-            // If JSON parsing fails, return error object
             console.error('❌ JSON Parse Error:', parseError);
             throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
         });
@@ -829,6 +847,9 @@ function selectActionUserTraining(action) {
     });
 }
 
+// ============================================
+// ONE TIME SERVICE REQUEST HANDLER
+// ============================================
 function selectActionOTS(action) {
     if (!masterDataLoaded) {
         showStatus('⚠️ Please load master data first', 'error');
@@ -895,14 +916,11 @@ function selectActionOTS(action) {
         console.log('📥 Response Status:', response.status);
         console.log('📥 Response OK:', response.ok);
 
-        // Always try to parse JSON response
         return response.json().then(data => {
-            // Attach the status to the data object
             data._httpStatus = response.status;
             data._httpOk = response.ok;
             return data;
         }).catch(parseError => {
-            // If JSON parsing fails, return error object
             console.error('❌ JSON Parse Error:', parseError);
             throw new Error(`Server returned invalid JSON (Status: ${response.status})`);
         });
