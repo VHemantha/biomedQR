@@ -451,11 +451,12 @@ def handle_consumable_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Consumable Request - Item{item_id}"
+        action_title = f"Consumable Request - Item :{item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
+            'title': action_title,
             'requestID': action_title,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
@@ -559,12 +560,13 @@ def handle_userT_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"User Training Request - Item{item_id}"
+        action_title = f"User Training Request - Item :{item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
+            'requestID' : action_title,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
@@ -666,12 +668,13 @@ def handle_ots_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"One Time Service Request - Item{item_id}"
+        action_title = f"One Time Service Request - Item :{item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
+            'requestID6' : action_title,
             'itemID': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
@@ -773,12 +776,13 @@ def handle_repair_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Repair Process Request - Item{item_id}"
+        action_title = f"Repair Process Request - Item :{item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
+            'requestID': action_title,
             'itemID': item_id,
             'itemID': area,
             'requestDateAndTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
