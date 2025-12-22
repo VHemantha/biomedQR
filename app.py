@@ -451,7 +451,7 @@ def handle_consumable_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Consumable Request - Item :{item_id}"
+        action_title = f"Consumable Request - {item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
@@ -560,7 +560,7 @@ def handle_userT_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"User Training Request - Item :{item_id}"
+        action_title = f"User Training Request - {item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
@@ -668,7 +668,7 @@ def handle_ots_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"One Time Service Request - Item :{item_id}"
+        action_title = f"One Time Service Request - {item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
@@ -776,7 +776,7 @@ def handle_repair_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Repair Process Request - Item :{item_id}"
+        action_title = f"Repair Process Request - {item_id}"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
