@@ -313,6 +313,7 @@
 // APPLICATION STATE
 // ============================================
 const itemId = '{{ item_id }}';
+const flow = '{{ flow }}';  // Get flow from template
 let selectedRating = 0;
 let recordId = null;
 let equipmentData = null;
@@ -332,10 +333,11 @@ const ratingConfig = {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('⭐ Rating Page Initialized');
     console.log('Item ID:', itemId);
-    
+    console.log('Flow:', flow);
+
     // Initialize star rating listeners
     initializeStarRating();
-    
+
     // Fetch equipment data
     fetchEquipmentData();
 });
@@ -400,14 +402,25 @@ function updateRatingLabel(rating) {
 // ============================================
 function fetchEquipmentData() {
     console.log('📡 Fetching equipment data for Item ID:', itemId);
-    
+    console.log('📡 Flow:', flow);
+
     if (!itemId || itemId === '' || itemId === 'None') {
         showStatus('❌ Invalid Item ID', 'error');
         document.getElementById('loadingIndicator').style.display = 'none';
         return;
     }
-    
-    fetch(`/api/get_master_data/${encodeURIComponent(itemId)}`)
+
+    // Determine the API endpoint based on flow
+    let apiUrl;
+    if (flow === 'consumable') {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/consumable`;
+        console.log('🔄 Using CONSUMABLE endpoint');
+    } else {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}`;
+        console.log('🔄 Using DEFAULT endpoint');
+    }
+
+    fetch(apiUrl)
         .then(response => {
             console.log('Response status:', response.status);
             if (!response.ok) {
@@ -417,20 +430,24 @@ function fetchEquipmentData() {
         })
         .then(data => {
             console.log('📦 Equipment data received:', data);
-            
+
             if (data.success && data.data) {
                 equipmentData = data.data;
                 recordId = data.data.id; // Get the record ID for PUT request
-                
+
                 console.log('✅ Record ID:', recordId);
-                
-                // Display equipment details
-                displayEquipmentDetails(data.data);
-                
+
+                // Display equipment details based on flow
+                if (flow === 'consumable') {
+                    displayConsumableDetails(data.data);
+                } else {
+                    displayEquipmentDetails(data.data);
+                }
+
                 // Hide loading, show content
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('ratingContent').style.display = 'block';
-                
+
             } else {
                 throw new Error(data.error || 'Failed to fetch equipment data');
             }
@@ -448,13 +465,53 @@ function displayEquipmentDetails(data) {
     document.getElementById('display-productModel').textContent = data.productModel || '-';
     document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
     document.getElementById('display-supplier').textContent = data.supplierName || '-';
-    
+
     // Display last updated date as service date
     const serviceDate = data.lastUpdatedDate || data.createdDate || '-';
     document.getElementById('display-activity').textContent = data.activity || '-';
     document.getElementById('display-serviceDate').textContent = serviceDate;
-    
+
     console.log('✅ Equipment details displayed');
+}
+
+function displayConsumableDetails(data) {
+    // Map consumable data fields to the HTML elements
+    document.getElementById('display-itemID').textContent = data.requestID || '-';
+    document.getElementById('display-hospital').textContent = data.hospital || '-';
+    document.getElementById('display-productModel').textContent = data['productName(Optional)'] || '-';
+    document.getElementById('display-serialNumber').textContent = data['serialNumber(Optional)'] || '-';
+    document.getElementById('display-supplier').textContent = data['supplierName(Optional)'] || '-';
+    document.getElementById('display-activity').textContent = data.requestType || 'Consumable Request';
+
+    // Format and display request date
+    const requestDate = data['requestDate&Time'] || data.createdDate || '-';
+    if (requestDate && requestDate !== '-') {
+        try {
+            const formattedDate = new Date(requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('display-serviceDate').textContent = formattedDate;
+        } catch (e) {
+            document.getElementById('display-serviceDate').textContent = requestDate;
+        }
+    } else {
+        document.getElementById('display-serviceDate').textContent = '-';
+    }
+
+    console.log('✅ Consumable details displayed');
+    console.log('Data mapping:', {
+        requestID: data.requestID,
+        hospital: data.hospital,
+        productName: data['productName(Optional)'],
+        serialNumber: data['serialNumber(Optional)'],
+        supplierName: data['supplierName(Optional)'],
+        requestType: data.requestType,
+        requestDate: data['requestDate&Time']
+    });
 }
 
 // ============================================
@@ -465,12 +522,12 @@ function submitRating() {
         showStatus('⚠️ Please select a rating', 'error');
         return;
     }
-    
+
     if (!recordId) {
         showStatus('❌ Record ID not found. Cannot submit rating.', 'error');
         return;
     }
-    
+
     const comments = document.getElementById('comments').value.trim();
 
     // Get the text value for the selected rating
@@ -480,6 +537,7 @@ function submitRating() {
     console.log('Rating text:', ratingText);
     console.log('Comments:', comments);
     console.log('Record ID:', recordId);
+    console.log('Flow:', flow);
 
     // Disable submit button
     const btn = document.getElementById('submitRatingBtn');
@@ -488,8 +546,15 @@ function submitRating() {
 
     showStatus('⏳ Submitting your rating...', 'loading');
 
+    // Determine the correct submit endpoint based on flow
+    const submitEndpoint = flow === 'consumable'
+        ? `/api/submit_rating_cons/${recordId}`
+        : `/api/submit_rating/${recordId}`;
+
+    console.log('📤 Using submit endpoint:', submitEndpoint);
+
     // Make PUT request to update rating
-    fetch(`/api/submit_rating/${recordId}`, {
+    fetch(submitEndpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -506,16 +571,16 @@ function submitRating() {
     })
     .then(data => {
         console.log('📦 Response:', data);
-        
+
         if (data.success) {
             console.log('✅ Rating submitted successfully');
-            
+
             // Hide rating content
             document.getElementById('ratingContent').style.display = 'none';
-            
+
             // Show success message
             document.getElementById('successMessage').style.display = 'block';
-            
+
             showStatus('✅ Thank you for your feedback!', 'success');
         } else {
             throw new Error(data.error || 'Failed to submit rating');
@@ -524,7 +589,7 @@ function submitRating() {
     .catch(error => {
         console.error('❌ Submit error:', error);
         showStatus(`❌ Error: ${error.message}`, 'error');
-        
+
         // Re-enable button
         btn.disabled = false;
         btn.innerHTML = 'Submit Rating';

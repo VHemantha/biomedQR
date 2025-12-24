@@ -17,7 +17,7 @@ OTS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVME
 REPAIR_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wa97c783b94/cards'
 # Datatable endpoint to create records when generating QR
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
-
+CONS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
 
 # Global variables for token management
 access_token = None
@@ -827,17 +827,34 @@ def handle_repair_request():
 
 
 
-@app.route('/api/get_master_data/<item_id>', methods=['GET'])
-def get_master_data(item_id):
-    """Fetch master data details by itemID with pagination"""
+@app.route('/api/get_master_data/<item_id>/<flow>', methods=['GET'])
+def get_master_data_with_flow_cons(item_id, flow):
+    """Fetch master data details by itemID with pagination, routing based on flow
+
+    Different flows use different ID fields:
+    - consumable: uses 'requestID' field
+    - default: uses 'itemID' field
+    """
     try:
         token = get_access_token()
         if not token:
             return jsonify({'error': 'Failed to obtain access token'}), 500
 
+        # Select the appropriate datatable endpoint based on flow
+        if flow == 'consumable':
+            datatable_endpoint = CONS_DATATABLE_ENDPOINT
+            id_field = 'requestID'
+            print(f"Using CONSUMABLE datatable endpoint for flow: {flow}")
+        else:
+            datatable_endpoint = DATATABLE_ENDPOINT
+            id_field = 'itemID'
+            print(f"Using DEFAULT datatable endpoint for flow: {flow}")
+
+        print(f"Fetching data for {id_field}: {item_id}, flow: {flow}")
+
         # GET request to datatable endpoint with limit and offset parameters
         response = requests.get(
-            f'{DATATABLE_ENDPOINT}?limit=100&offset=0',
+            f'{datatable_endpoint}?limit=100&offset=0',
             headers={
                 'Authorization': f'Bearer {token}',
                 'Content-Type': 'application/json',
@@ -848,7 +865,62 @@ def get_master_data(item_id):
         if response.status_code == 200:
             records = response.json()
             print(f"Fetched {len(records)} records from API")
-            
+
+            # Filter records by appropriate ID field based on flow
+            matching_records = [r for r in records if r.get(id_field) == item_id]
+
+            if matching_records:
+                print(f"Found matching record for {id_field}: {item_id}")
+                # Return the first matching record
+                return jsonify({
+                    'success': True,
+                    'data': matching_records[0]
+                })
+            else:
+                print(f"No matching record found for {id_field}: {item_id}")
+                return jsonify({
+                    'success': False,
+                    'error': f'No record found with this {id_field}: {item_id}'
+                }), 404
+        else:
+            print(f"API request failed: {response.status_code} - {response.text}")
+            return jsonify({
+                'success': False,
+                'error': f'API request failed: {response.status_code}'
+            }), response.status_code
+
+    except Exception as e:
+        print(f"Error in get_master_data_with_flow: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/get_master_data/<item_id>', methods=['GET'])
+def get_master_data(item_id):
+    """Fetch master data details by itemID with pagination (default flow)"""
+    try:
+        token = get_access_token()
+        if not token:
+            return jsonify({'error': 'Failed to obtain access token'}), 500
+
+        # GET request to datatable endpoint with limit and offset parameters
+        datatable_endpoint = DATATABLE_ENDPOINT
+        print(f"Fetching data for item_id: {item_id} (default endpoint)")
+
+        response = requests.get(
+            f'{datatable_endpoint}?limit=100&offset=0',
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        )
+
+        if response.status_code == 200:
+            records = response.json()
+            print(f"Fetched {len(records)} records from API")
+
             # Filter records by itemID
             matching_records = [r for r in records if r.get('itemID') == item_id]
 
@@ -877,7 +949,8 @@ def get_master_data(item_id):
         return jsonify({
             'success': False,
             'error': str(e)
-        }), 500
+        }), 500        
+        
 
 @app.route('/generate_qr')
 def generate_qr():
@@ -899,16 +972,24 @@ def generate_qr():
     
     return jsonify({'qr_url': qr_url})
 
-# Add this new route for the rating page
+# Add this new route for the rating page with optional flow parameter
 @app.route('/rating/<item_id>')
-def rating_page(item_id):
-    """Rating page for completed services"""
+@app.route('/rating/<item_id>/<flow>')
+def rating_page(item_id, flow='default'):
+    """Rating page for completed services
+
+    URL patterns:
+    - /rating/ITM021 -> default flow
+    - /rating/ITM021/consumable -> consumable flow
+    - /rating/ITM021/repair -> repair flow (future)
+    """
     print("=" * 60)
     print("⭐ RATING PAGE ACCESSED")
     print(f"Item ID: {item_id}")
+    print(f"Flow: {flow}")
     print("=" * 60)
-    
-    return render_template('rating.html', item_id=item_id)
+
+    return render_template('rating.html', item_id=item_id, flow=flow)
 
 # Add this new route to handle rating submission
 @app.route('/api/submit_rating/<record_id>', methods=['POST'])
@@ -1018,6 +1099,118 @@ def submit_rating(record_id):
             'success': False,
             'error': str(e)
         }), 500
+        
+        
+@app.route('/api/submit_rating_cons/<record_id>', methods=['POST'])
+def submit_rating_cons(record_id):
+    """Submit rating using record_id"""
+    try:
+        data = request.get_json()
+        rating = data.get('rating')
+        comments = data.get('comments', '')
+        item_id_from_body = data.get('item_id', '')
+        
+        print(f"Record ID: {record_id}")
+        print(f"Rating: {rating}")
+        print(f"Comments: {comments}")
+        print(f"Item ID from body: {item_id_from_body}")
+
+        # Validate record_id is provided
+        if not record_id:
+            return jsonify({
+                'success': False,
+                'error': 'Record ID is required'
+            }), 400
+
+        # Valid rating text values
+        valid_ratings = ['Highly Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Highly Satisfied']
+
+        if not rating or rating not in valid_ratings:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid rating. Must be one of: {", ".join(valid_ratings)}'
+            }), 400
+        
+        # Get access token
+        token = get_access_token()
+        if not token:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to obtain access token'
+            }), 500
+        
+        # Prepare PUT request payload
+        update_payload = {
+            'rating': rating
+        }
+        
+        print(f"Sending PUT request to update record {record_id}")
+        print(f"Payload: {json.dumps(update_payload, indent=2)}")
+        
+        # Make PUT request to update the record
+        update_url = f'{CONS_DATATABLE_ENDPOINT}/{record_id}'
+        response = requests.put(
+            update_url,
+            headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "user-agent": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+        },
+            json=update_payload,
+            timeout=10
+        )
+        
+        print(f"Response Status: {response.status_code}")
+        print(f"Response Body: {response.text}")
+        
+        if response.status_code in [200, 201, 204]:
+            print("✅ Rating updated successfully")
+            print("=" * 60)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Rating submitted successfully!',
+                'data': {
+                    'rating': rating,
+                    'comments': comments,
+                    'record_id': record_id
+                }
+            })
+        else:
+            error_msg = f"API returned status {response.status_code}"
+            try:
+                error_data = response.json()
+                error_msg = error_data.get('message') or error_data.get('error') or error_msg
+            except:
+                pass
+            
+            print(f"❌ Update failed: {error_msg}")
+            print("=" * 60)
+            
+            return jsonify({
+                'success': False,
+                'error': error_msg
+            }), response.status_code
+            
+    except requests.exceptions.Timeout:
+        print("❌ Request timeout")
+        print("=" * 60)
+        return jsonify({
+            'success': False,
+            'error': 'Request timeout - API took too long to respond'
+        }), 500
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("=" * 60)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+     
+        
+        
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
