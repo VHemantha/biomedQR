@@ -19,6 +19,7 @@ REPAIR_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBI
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 CONS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
 
+CONS_PUT_REQUEST = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
 # Global variables for token management
 access_token = None
 token_expiry = None
@@ -1141,14 +1142,14 @@ def submit_rating_cons(record_id):
         
         # Prepare PUT request payload
         update_payload = {
-            'rating': rating
+            'feedback': rating
         }
         
         print(f"Sending PUT request to update record {record_id}")
         print(f"Payload: {json.dumps(update_payload, indent=2)}")
         
         # Make PUT request to update the record
-        update_url = f'{CONS_DATATABLE_ENDPOINT}/{record_id}'
+        update_url = f'{CONS_PUT_REQUEST}/{record_id}'
         response = requests.put(
             update_url,
             headers = {
