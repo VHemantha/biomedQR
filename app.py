@@ -15,11 +15,31 @@ CONS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVM
 USER_TRN_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/w938b656364/cards'
 OTS_API_ENDPOINT ='https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wb9cbe5aa42/cards'
 REPAIR_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/wa97c783b94/cards'
-# Datatable endpoint to create records when generating QR
+# Datatable endpoints for GET requests (fetching data)
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 CONS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
 
-CONS_PUT_REQUEST = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
+# PUT request endpoints for updating ratings (one endpoint per activity type)
+# Note: These endpoints should match the corresponding datatable for each activity type
+DEFAULT_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
+CONSUMABLE_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
+USER_TRAINING_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/USER_TRAINING_DATATABLE_ID/records'
+OTS_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/OTS_DATATABLE_ID/records'
+REPAIR_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/REPAIR_DATATABLE_ID/records'
+
+# Activity type to PUT endpoint mapping
+ACTIVITY_PUT_ENDPOINT_MAP = {
+    'Consumable Request': CONSUMABLE_PUT_ENDPOINT,
+    'User Training': USER_TRAINING_PUT_ENDPOINT,
+    'User Training Request': USER_TRAINING_PUT_ENDPOINT,
+    'One Time Service': OTS_PUT_ENDPOINT,
+    'One Time Service Request': OTS_PUT_ENDPOINT,
+    'Repair': REPAIR_PUT_ENDPOINT,
+    'Repair Request': REPAIR_PUT_ENDPOINT,
+    'Repair Process Request': REPAIR_PUT_ENDPOINT,
+    # Default fallback
+    'default': DEFAULT_PUT_ENDPOINT
+}
 # Global variables for token management
 access_token = None
 token_expiry = None
@@ -992,20 +1012,35 @@ def rating_page(item_id, flow='default'):
 
     return render_template('rating.html', item_id=item_id, flow=flow)
 
-# Add this new route to handle rating submission
+# Unified route to handle rating submission for all activity types
 @app.route('/api/submit_rating/<record_id>', methods=['POST'])
 def submit_rating(record_id):
-    """Submit rating using record_id"""
+    """Submit rating using record_id - dynamically routes to correct endpoint based on activity type
+
+    This function handles rating submissions for all activity types:
+    - Consumable Request
+    - User Training / User Training Request
+    - One Time Service / One Time Service Request
+    - Repair / Repair Request / Repair Process Request
+    - Default (equipment)
+
+    The activity type is passed from the frontend and determines which PUT endpoint to use.
+    """
     try:
         data = request.get_json()
         rating = data.get('rating')
         comments = data.get('comments', '')
         item_id_from_body = data.get('item_id', '')
-        
+        activity_type = data.get('activity_type', 'default')  # Get activity type from request
+
+        print("=" * 60)
+        print("📝 RATING SUBMISSION REQUEST")
         print(f"Record ID: {record_id}")
         print(f"Rating: {rating}")
         print(f"Comments: {comments}")
-        print(f"Item ID from body: {item_id_from_body}")
+        print(f"Item ID: {item_id_from_body}")
+        print(f"Activity Type: {activity_type}")
+        print("=" * 60)
 
         # Validate record_id is provided
         if not record_id:
@@ -1022,7 +1057,7 @@ def submit_rating(record_id):
                 'success': False,
                 'error': f'Invalid rating. Must be one of: {", ".join(valid_ratings)}'
             }), 400
-        
+
         # Get access token
         token = get_access_token()
         if not token:
@@ -1030,42 +1065,52 @@ def submit_rating(record_id):
                 'success': False,
                 'error': 'Failed to obtain access token'
             }), 500
-        
+
+        # Determine the correct PUT endpoint based on activity type
+        put_endpoint = ACTIVITY_PUT_ENDPOINT_MAP.get(activity_type, ACTIVITY_PUT_ENDPOINT_MAP['default'])
+
+        print(f"🎯 Activity Type: '{activity_type}'")
+        print(f"🔗 Selected PUT Endpoint: {put_endpoint}")
+
         # Prepare PUT request payload
-        update_payload = {
-            'rating': rating
-        }
-        
-        print(f"Sending PUT request to update record {record_id}")
-        print(f"Payload: {json.dumps(update_payload, indent=2)}")
-        
+        # Different endpoints may use different field names for ratings
+        if activity_type == 'Consumable Request':
+            update_payload = {'feedback': rating}  # Consumable uses 'feedback' field
+        else:
+            update_payload = {'rating': rating}    # Others use 'rating' field
+
+        print(f"📤 Payload: {json.dumps(update_payload, indent=2)}")
+
         # Make PUT request to update the record
-        update_url = f'{DATATABLE_ENDPOINT}/{record_id}'
+        update_url = f'{put_endpoint}/{record_id}'
+        print(f"🌐 Full URL: {update_url}")
+
         response = requests.put(
             update_url,
-            headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "user-agent": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-        },
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+                "user-agent": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+            },
             json=update_payload,
             timeout=10
         )
-        
-        print(f"Response Status: {response.status_code}")
-        print(f"Response Body: {response.text}")
-        
+
+        print(f"📥 Response Status: {response.status_code}")
+        print(f"📥 Response Body: {response.text}")
+
         if response.status_code in [200, 201, 204]:
             print("✅ Rating updated successfully")
             print("=" * 60)
-            
+
             return jsonify({
                 'success': True,
                 'message': 'Rating submitted successfully!',
                 'data': {
                     'rating': rating,
                     'comments': comments,
-                    'record_id': record_id
+                    'record_id': record_id,
+                    'activity_type': activity_type
                 }
             })
         else:
@@ -1075,15 +1120,15 @@ def submit_rating(record_id):
                 error_msg = error_data.get('message') or error_data.get('error') or error_msg
             except:
                 pass
-            
+
             print(f"❌ Update failed: {error_msg}")
             print("=" * 60)
-            
+
             return jsonify({
                 'success': False,
                 'error': error_msg
             }), response.status_code
-            
+
     except requests.exceptions.Timeout:
         print("❌ Request timeout")
         print("=" * 60)
@@ -1100,118 +1145,7 @@ def submit_rating(record_id):
             'success': False,
             'error': str(e)
         }), 500
-        
-        
-@app.route('/api/submit_rating_cons/<record_id>', methods=['POST'])
-def submit_rating_cons(record_id):
-    """Submit rating using record_id"""
-    try:
-        data = request.get_json()
-        rating = data.get('rating')
-        comments = data.get('comments', '')
-        item_id_from_body = data.get('item_id', '')
-        
-        print(f"Record ID: {record_id}")
-        print(f"Rating: {rating}")
-        print(f"Comments: {comments}")
-        print(f"Item ID from body: {item_id_from_body}")
 
-        # Validate record_id is provided
-        if not record_id:
-            return jsonify({
-                'success': False,
-                'error': 'Record ID is required'
-            }), 400
-
-        # Valid rating text values
-        valid_ratings = ['Highly Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Highly Satisfied']
-
-        if not rating or rating not in valid_ratings:
-            return jsonify({
-                'success': False,
-                'error': f'Invalid rating. Must be one of: {", ".join(valid_ratings)}'
-            }), 400
-        
-        # Get access token
-        token = get_access_token()
-        if not token:
-            return jsonify({
-                'success': False,
-                'error': 'Failed to obtain access token'
-            }), 500
-        
-        # Prepare PUT request payload
-        update_payload = {
-            'feedback': rating
-        }
-        
-        print(f"Sending PUT request to update record {record_id}")
-        print(f"Payload: {json.dumps(update_payload, indent=2)}")
-        
-        # Make PUT request to update the record
-        update_url = f'{CONS_PUT_REQUEST}/{record_id}'
-        response = requests.put(
-            update_url,
-            headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "user-agent": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-        },
-            json=update_payload,
-            timeout=10
-        )
-        
-        print(f"Response Status: {response.status_code}")
-        print(f"Response Body: {response.text}")
-        
-        if response.status_code in [200, 201, 204]:
-            print("✅ Rating updated successfully")
-            print("=" * 60)
-            
-            return jsonify({
-                'success': True,
-                'message': 'Rating submitted successfully!',
-                'data': {
-                    'rating': rating,
-                    'comments': comments,
-                    'record_id': record_id
-                }
-            })
-        else:
-            error_msg = f"API returned status {response.status_code}"
-            try:
-                error_data = response.json()
-                error_msg = error_data.get('message') or error_data.get('error') or error_msg
-            except:
-                pass
-            
-            print(f"❌ Update failed: {error_msg}")
-            print("=" * 60)
-            
-            return jsonify({
-                'success': False,
-                'error': error_msg
-            }), response.status_code
-            
-    except requests.exceptions.Timeout:
-        print("❌ Request timeout")
-        print("=" * 60)
-        return jsonify({
-            'success': False,
-            'error': 'Request timeout - API took too long to respond'
-        }), 500
-    except Exception as e:
-        print(f"❌ Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        print("=" * 60)
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-     
-        
-        
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

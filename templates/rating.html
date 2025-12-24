@@ -317,6 +317,7 @@ const flow = '{{ flow }}';  // Get flow from template
 let selectedRating = 0;
 let recordId = null;
 let equipmentData = null;
+let activityType = null;  // Will be populated from fetched data
 
 // Rating configurations
 const ratingConfig = {
@@ -435,7 +436,16 @@ function fetchEquipmentData() {
                 equipmentData = data.data;
                 recordId = data.data.id; // Get the record ID for PUT request
 
+                // Capture activity type from the data
+                // Different flows store activity in different fields
+                if (flow === 'consumable') {
+                    activityType = data.data.requestType || 'Consumable Request';
+                } else {
+                    activityType = data.data.activity || 'default';
+                }
+
                 console.log('✅ Record ID:', recordId);
+                console.log('✅ Activity Type:', activityType);
 
                 // Display equipment details based on flow
                 if (flow === 'consumable') {
@@ -528,16 +538,24 @@ function submitRating() {
         return;
     }
 
+    if (!activityType) {
+        showStatus('❌ Activity type not found. Cannot determine endpoint.', 'error');
+        return;
+    }
+
     const comments = document.getElementById('comments').value.trim();
 
     // Get the text value for the selected rating
     const ratingText = ratingConfig[selectedRating].text;
 
-    console.log('📤 Submitting rating...');
+    console.log('=' .repeat(60));
+    console.log('📤 SUBMITTING RATING');
     console.log('Rating text:', ratingText);
     console.log('Comments:', comments);
     console.log('Record ID:', recordId);
+    console.log('Activity Type:', activityType);
     console.log('Flow:', flow);
+    console.log('=' .repeat(60));
 
     // Disable submit button
     const btn = document.getElementById('submitRatingBtn');
@@ -546,12 +564,10 @@ function submitRating() {
 
     showStatus('⏳ Submitting your rating...', 'loading');
 
-    // Determine the correct submit endpoint based on flow
-    const submitEndpoint = flow === 'consumable'
-        ? `/api/submit_rating_cons/${recordId}`
-        : `/api/submit_rating/${recordId}`;
+    // Use unified endpoint - backend will route based on activity_type
+    const submitEndpoint = `/api/submit_rating/${recordId}`;
 
-    console.log('📤 Using submit endpoint:', submitEndpoint);
+    console.log('📤 Submit endpoint:', submitEndpoint);
 
     // Make PUT request to update rating
     fetch(submitEndpoint, {
@@ -562,7 +578,8 @@ function submitRating() {
         body: JSON.stringify({
             rating: ratingText,
             comments: comments,
-            item_id: itemId
+            item_id: itemId,
+            activity_type: activityType  // Send activity type to backend for routing
         })
     })
     .then(response => {
