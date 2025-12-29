@@ -677,7 +677,7 @@ def handle_ots_request():
             }), 400
 
         print('=' * 60)
-        print('🔵 USER TRAINING REQUEST HANDLER')
+        print('🔵 OTS REQUEST HANDLER')
         print('=' * 60)
         print(f"Equipment ID: {equipment_id}")
         print(f"Item ID: {item_id}")
@@ -715,12 +715,12 @@ def handle_ots_request():
         # Make API call
         result = make_api_request_ots(api_data)
 
-        print('✅ User Training request submitted successfully')
+        print('✅ One Time Service request submitted successfully')
         print('=' * 60)
 
         return jsonify({
             'success': True,
-            'message': 'User Training Request submitted successfully!',
+            'message': 'One Time Service Request submitted successfully!',
             'data': result
         }), 200
 
@@ -785,7 +785,7 @@ def handle_repair_request():
             }), 400
 
         print('=' * 60)
-        print('🔵 USER TRAINING REQUEST HANDLER')
+        print('🔵 Repair REQUEST HANDLER')
         print('=' * 60)
         print(f"Equipment ID: {equipment_id}")
         print(f"Item ID: {item_id}")
@@ -825,12 +825,12 @@ def handle_repair_request():
         # Make API call
         result = make_api_request_repair(api_data)
 
-        print('✅ User Training request submitted successfully')
+        print('✅ Repair request submitted successfully')
         print('=' * 60)
 
         return jsonify({
             'success': True,
-            'message': 'User Training Request submitted successfully!',
+            'message': 'Repair Request submitted successfully!',
             'data': result
         }), 200
 
