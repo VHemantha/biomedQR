@@ -23,9 +23,9 @@ CONS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELW
 # Note: These endpoints should match the corresponding datatable for each activity type
 DEFAULT_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 CONSUMABLE_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
-USER_TRAINING_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/USER_TRAINING_DATATABLE_ID/records'
-OTS_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/OTS_DATATABLE_ID/records'
-REPAIR_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/REPAIR_DATATABLE_ID/records'
+USER_TRAINING_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/W77VKUNWCN5EF4TX5LQEUBZHVOW4NO65DFNXBLAL/records'
+OTS_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/LNDO6RVKEA4XV5WU2ULJZVDELKNFOPNPWGRTYLLF/records'
+REPAIR_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/UNKCZOGOASTYG74CQJCNSZ5RUE5ZDC2II34Y77DO/records'
 
 # Activity type to PUT endpoint mapping
 ACTIVITY_PUT_ENDPOINT_MAP = {
@@ -696,14 +696,14 @@ def handle_ots_request():
         api_data = {
             'title': action_title,
             'requestID6' : action_title,
-            'itemID': area,
+            'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
             'hospital': hospital,
             'modality': product_model,
             'serialNumber1': serial_number,
             'productModel': product_model,
-            'contactNumber': contact_number
+            'conactNumber': contact_number
 
         }
 
