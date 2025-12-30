@@ -18,9 +18,7 @@ REPAIR_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBI
 # Datatable endpoints for GET requests (fetching data)
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 CONS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
-USER_TRN_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/W77VKUNWCN5EF4TX5LQEUBZHVOW4NO65DFNXBLAL/records'
-OTS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/LNDO6RVKEA4XV5WU2ULJZVDELKNFOPNPWGRTYLLF/records'
-REPAIR_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/UNKCZOGOASTYG74CQJCNSZ5RUE5ZDC2II34Y77DO/records'
+
 # PUT request endpoints for updating ratings (one endpoint per activity type)
 # Note: These endpoints should match the corresponding datatable for each activity type
 DEFAULT_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
@@ -475,16 +473,15 @@ def handle_consumable_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"Consumable Request - {item_id}"
-        request_type = 'Consumable Request'
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
             'title': action_title,
-            'itemID': item_id,
+            'requestID': action_title,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
-            'requestType' : request_type,
+            'requestType' : 'Consumable Request',
             'location': location,
             'hospital': hospital,
             'serialNumber': serial_number,
@@ -585,14 +582,12 @@ def handle_userT_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"User Training Request - {item_id}"
-        request_type = 'User Training Request'
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
-            'itemID': item_id,
-            'requestType': request_type,
+            'requestID' : action_title,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
@@ -695,14 +690,12 @@ def handle_ots_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"One Time Service Request - {item_id}"
-        request_type = "One Time Service Request"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
-            'iTEMID': item_id,
-            'requestType': request_type,
+            'requestID6' : action_title,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
@@ -805,14 +798,14 @@ def handle_repair_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"Repair Process Request - {item_id}"
-        request_type = "Repair Process Request"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
+            'requestID': action_title,
             'itemID': item_id,
-            'requestType': request_type,
+            'itemID': area,
             'requestDateAndTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
             'hospital': hospital,
@@ -873,18 +866,6 @@ def get_master_data_with_flow_cons(item_id, flow):
             datatable_endpoint = CONS_DATATABLE_ENDPOINT
             id_field = 'requestID'
             print(f"Using CONSUMABLE datatable endpoint for flow: {flow}")
-        elif flow == 'ots':
-            datatable_endpoint = OTS_DATATABLE_ENDPOINT
-            id_field = 'id'
-            print(f"Using OTS datatable endpoint for flow: {flow}")
-        elif flow == 'repair':
-            datatable_endpoint = REPAIR_DATATABLE_ENDPOINT
-            id_field = 'feedback'
-            print(f"Using REPAIR datatable endpoint for flow: {flow}")
-        elif flow == 'usertrn':
-            datatable_endpoint = USER_TRN_DATATABLE_ENDPOINT
-            id_field = 'feedback'
-            print(f"Using USER TRAINING datatable endpoint for flow: {flow}")
         else:
             datatable_endpoint = DATATABLE_ENDPOINT
             id_field = 'itemID'
