@@ -875,7 +875,7 @@ def get_master_data_with_flow_cons(item_id, flow):
             print(f"Using CONSUMABLE datatable endpoint for flow: {flow}")
         elif flow == 'ots':
             datatable_endpoint = OTS_DATATABLE_ENDPOINT
-            id_field = 'feedback'
+            id_field = 'id'
             print(f"Using OTS datatable endpoint for flow: {flow}")
         elif flow == 'repair':
             datatable_endpoint = REPAIR_DATATABLE_ENDPOINT
