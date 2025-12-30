@@ -475,15 +475,16 @@ def handle_consumable_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"Consumable Request - {item_id}"
+        request_type = 'Consumable Request'
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for consumable request - matching all fields from handle_action
         api_data = {
             'title': action_title,
-            'requestID': action_title,
+            'itemID': item_id,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
-            'requestType' : 'Consumable Request',
+            'requestType' : request_type,
             'location': location,
             'hospital': hospital,
             'serialNumber': serial_number,
@@ -584,12 +585,14 @@ def handle_userT_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"User Training Request - {item_id}"
+        request_type = 'User Training Request'
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
-            'requestID' : action_title,
+            'itemID': item_id,
+            'requestType': request_type,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
@@ -692,12 +695,14 @@ def handle_ots_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"One Time Service Request - {item_id}"
+        request_type = "One Time Service Request"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
-            'requestID6' : action_title,
+            'iTEMID': item_id,
+            'requestType': request_type,
             'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
@@ -800,14 +805,14 @@ def handle_repair_request():
 
         current_date = datetime.now().strftime('%Y-%m-%d')
         action_title = f"Repair Process Request - {item_id}"
+        request_type = "Repair Process Request"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
         api_data = {
             'title': action_title,
-            'requestID': action_title,
             'itemID': item_id,
-            'itemID': area,
+            'requestType': request_type,
             'requestDateAndTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
             'hospital': hospital,
