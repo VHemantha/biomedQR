@@ -18,7 +18,9 @@ REPAIR_API_ENDPOINT = 'https://app.workhub24.com/api/workflows/VTAQAOUPYELWDVZBI
 # Datatable endpoints for GET requests (fetching data)
 DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
 CONS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/P66XQNQVY7NCVN2YE3YLEXYRKN5IU7NP3VBPWUUD/records'
-
+USER_TRN_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/W77VKUNWCN5EF4TX5LQEUBZHVOW4NO65DFNXBLAL/records'
+OTS_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/LNDO6RVKEA4XV5WU2ULJZVDELKNFOPNPWGRTYLLF/records'
+REPAIR_DATATABLE_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/UNKCZOGOASTYG74CQJCNSZ5RUE5ZDC2II34Y77DO/records'
 # PUT request endpoints for updating ratings (one endpoint per activity type)
 # Note: These endpoints should match the corresponding datatable for each activity type
 DEFAULT_PUT_ENDPOINT = 'https://app.workhub24.com/api/datatables/VTAQAOUPYELWDVZBIRVMEQHT6P7DKIB7/X4WRTFUICR7IWB6K7YG6OEZDDZGYEDYNYA6HQMUH/records'
@@ -866,6 +868,18 @@ def get_master_data_with_flow_cons(item_id, flow):
             datatable_endpoint = CONS_DATATABLE_ENDPOINT
             id_field = 'requestID'
             print(f"Using CONSUMABLE datatable endpoint for flow: {flow}")
+        elif flow == 'ots':
+            datatable_endpoint = OTS_DATATABLE_ENDPOINT
+            id_field = 'feedback'
+            print(f"Using OTS datatable endpoint for flow: {flow}")
+        elif flow == 'repair':
+            datatable_endpoint = REPAIR_DATATABLE_ENDPOINT
+            id_field = 'feedback'
+            print(f"Using REPAIR datatable endpoint for flow: {flow}")
+        elif flow == 'usertrn':
+            datatable_endpoint = USER_TRN_DATATABLE_ENDPOINT
+            id_field = 'feedback'
+            print(f"Using USER TRAINING datatable endpoint for flow: {flow}")
         else:
             datatable_endpoint = DATATABLE_ENDPOINT
             id_field = 'itemID'
