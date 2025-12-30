@@ -416,6 +416,15 @@ function fetchEquipmentData() {
     if (flow === 'consumable') {
         apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/consumable`;
         console.log('🔄 Using CONSUMABLE endpoint');
+    } else if (flow === 'ots') {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/ots`;
+        console.log('🔄 Using OTS endpoint');
+    } else if (flow === 'repair') {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/repair`;
+        console.log('🔄 Using REPAIR endpoint');
+    } else if (flow === 'usertrn') {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/usertrn`;
+        console.log('🔄 Using USER TRAINING endpoint');
     } else {
         apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}`;
         console.log('🔄 Using DEFAULT endpoint');
@@ -440,6 +449,12 @@ function fetchEquipmentData() {
                 // Different flows store activity in different fields
                 if (flow === 'consumable') {
                     activityType = data.data.requestType || 'Consumable Request';
+                } else if (flow === 'ots') {
+                    activityType = 'One Time Service Request';
+                } else if (flow === 'repair') {
+                    activityType = 'Repair Process Request';
+                } else if (flow === 'usertrn') {
+                    activityType = 'User Training';
                 } else {
                     activityType = data.data.activity || 'default';
                 }
@@ -450,6 +465,12 @@ function fetchEquipmentData() {
                 // Display equipment details based on flow
                 if (flow === 'consumable') {
                     displayConsumableDetails(data.data);
+                } else if (flow === 'ots') {
+                    displayOTSDetails(data.data);
+                } else if (flow === 'repair') {
+                    displayRepairDetails(data.data);
+                } else if (flow === 'usertrn') {
+                    displayUserTrainingDetails(data.data);
                 } else {
                     displayEquipmentDetails(data.data);
                 }
@@ -522,6 +543,99 @@ function displayConsumableDetails(data) {
         requestType: data.requestType,
         requestDate: data['requestDate&Time']
     });
+}
+
+function displayOTSDetails(data) {
+    // Map OTS data fields to the HTML elements
+    document.getElementById('display-itemID').textContent = data.requestID6 || data.feedback || '-';
+    document.getElementById('display-hospital').textContent = data.hospital || '-';
+    document.getElementById('display-productModel').textContent = data.productModel || data.modality || '-';
+    document.getElementById('display-serialNumber').textContent = data.serialNumber1 || '-';
+    document.getElementById('display-supplier').textContent = '-'; // OTS may not have supplier
+    document.getElementById('display-activity').textContent = 'One Time Service Request';
+
+    // Format and display request date
+    const requestDate = data.requestDateTime || data.createdDate || '-';
+    if (requestDate && requestDate !== '-') {
+        try {
+            const formattedDate = new Date(requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('display-serviceDate').textContent = formattedDate;
+        } catch (e) {
+            document.getElementById('display-serviceDate').textContent = requestDate;
+        }
+    } else {
+        document.getElementById('display-serviceDate').textContent = '-';
+    }
+
+    console.log('✅ OTS details displayed');
+}
+
+function displayRepairDetails(data) {
+    // Map Repair data fields to the HTML elements
+    document.getElementById('display-itemID').textContent = data.requestID || data.feedback || '-';
+    document.getElementById('display-hospital').textContent = data.hospital || '-';
+    document.getElementById('display-productModel').textContent = data.productModel || '-';
+    document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
+    document.getElementById('display-supplier').textContent = '-'; // Repair may not have supplier
+    document.getElementById('display-activity').textContent = 'Repair Process Request';
+
+    // Format and display request date
+    const requestDate = data.requestDateAndTime || data.createdDate || '-';
+    if (requestDate && requestDate !== '-') {
+        try {
+            const formattedDate = new Date(requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('display-serviceDate').textContent = formattedDate;
+        } catch (e) {
+            document.getElementById('display-serviceDate').textContent = requestDate;
+        }
+    } else {
+        document.getElementById('display-serviceDate').textContent = '-';
+    }
+
+    console.log('✅ Repair details displayed');
+}
+
+function displayUserTrainingDetails(data) {
+    // Map User Training data fields to the HTML elements
+    document.getElementById('display-itemID').textContent = data.requestID || data.feedback || '-';
+    document.getElementById('display-hospital').textContent = data.hospitalDepartment || '-';
+    document.getElementById('display-productModel').textContent = data.productModel || data.modality || '-';
+    document.getElementById('display-serialNumber').textContent = data.prodcutSerielNumber || '-';
+    document.getElementById('display-supplier').textContent = '-'; // User Training may not have supplier
+    document.getElementById('display-activity').textContent = 'User Training';
+
+    // Format and display request date
+    const requestDate = data.requestDateTime || data.createdDate || '-';
+    if (requestDate && requestDate !== '-') {
+        try {
+            const formattedDate = new Date(requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('display-serviceDate').textContent = formattedDate;
+        } catch (e) {
+            document.getElementById('display-serviceDate').textContent = requestDate;
+        }
+    } else {
+        document.getElementById('display-serviceDate').textContent = '-';
+    }
+
+    console.log('✅ User Training details displayed');
 }
 
 // ============================================
