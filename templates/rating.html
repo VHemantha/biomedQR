@@ -416,6 +416,9 @@ function fetchEquipmentData() {
     if (flow === 'consumable') {
         apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/consumable`;
         console.log('🔄 Using CONSUMABLE endpoint');
+    } else if (flow === 'ots') {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/ots`;
+        console.log('🔄 Using OTS endpoint');
     } else {
         apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}`;
         console.log('🔄 Using DEFAULT endpoint');
@@ -441,7 +444,7 @@ function fetchEquipmentData() {
                 if (flow === 'consumable') {
                     activityType = data.data.requestType || 'Consumable Request';
                 } else if (flow === 'ots') {
-                    activityType = data.data.activity || 'One Time Service';
+                    activityType = data.data.requestType || 'One Time Service Request';
                 } else {
                     activityType = data.data.activity || 'default';
                 }
@@ -452,6 +455,8 @@ function fetchEquipmentData() {
                 // Display equipment details based on flow
                 if (flow === 'consumable') {
                     displayConsumableDetails(data.data);
+                } else if (flow === 'ots') {
+                    displayOTSDetails(data.data);
                 } else {
                     displayEquipmentDetails(data.data);
                 }
@@ -523,6 +528,49 @@ function displayConsumableDetails(data) {
         supplierName: data['supplierName(Optional)'],
         requestType: data.requestType,
         requestDate: data['requestDate&Time']
+    });
+}
+
+function displayOTSDetails(data) {
+    // Map OTS data fields to the HTML elements
+    // Backend uses 'id' as the identifier field for OTS flow (app.py:873)
+    document.getElementById('display-itemID').textContent = data.iTEMID || data.itemID || '-';
+    document.getElementById('display-hospital').textContent = data.hospital || '-';
+    document.getElementById('display-productModel').textContent = data.productModel || data.modality || '-';
+    document.getElementById('display-serialNumber').textContent = data.serialNumber1 || data.serialNumber || '-';
+    document.getElementById('display-supplier').textContent = data.supplierName || '-';
+    document.getElementById('display-activity').textContent = data.requestType || 'One Time Service Request';
+
+    // Format and display request date
+    const requestDate = data.requestDateTime || data['requestDate&Time'] || data.createdDate || '-';
+    if (requestDate && requestDate !== '-') {
+        try {
+            const formattedDate = new Date(requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('display-serviceDate').textContent = formattedDate;
+        } catch (e) {
+            console.warn('Date formatting failed, using raw value:', e);
+            document.getElementById('display-serviceDate').textContent = requestDate;
+        }
+    } else {
+        document.getElementById('display-serviceDate').textContent = '-';
+    }
+
+    console.log('✅ OTS details displayed');
+    console.log('Data mapping:', {
+        itemID: data.iTEMID || data.itemID,
+        hospital: data.hospital,
+        productModel: data.productModel,
+        modality: data.modality,
+        serialNumber1: data.serialNumber1,
+        requestType: data.requestType,
+        requestDateTime: data.requestDateTime,
+        contactNumber: data.conactNumber
     });
 }
 
