@@ -440,6 +440,8 @@ function fetchEquipmentData() {
                 // Different flows store activity in different fields
                 if (flow === 'consumable') {
                     activityType = data.data.requestType || 'Consumable Request';
+                } else if (flow === 'ots') {
+                    activityType = data.data.activity || 'One Time Service';
                 } else {
                     activityType = data.data.activity || 'default';
                 }
