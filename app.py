@@ -872,12 +872,12 @@ def get_master_data_with_flow_cons(item_id, flow):
         # Select the appropriate datatable endpoint based on flow
         if flow == 'consumable':
             datatable_endpoint = CONS_DATATABLE_ENDPOINT
-            id_field = 'requestID'
+            id_field = 'itemID'
             print(f"Using CONSUMABLE datatable endpoint for flow: {flow}")
         elif flow == 'ots':
             datatable_endpoint = OTS_DATATABLE_ENDPOINT
-            id_field = 'id'
-            print(f"Using OTS datatable endpoint for flow: {flow}")    
+            id_field = 'iTEMID'
+            print(f"Using OTS datatable endpoint for flow: {flow}")
         else:
             datatable_endpoint = DATATABLE_ENDPOINT
             id_field = 'itemID'
