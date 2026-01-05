@@ -872,11 +872,11 @@ def get_master_data_with_flow_cons(item_id, flow):
         # Select the appropriate datatable endpoint based on flow
         if flow == 'consumable':
             datatable_endpoint = CONS_DATATABLE_ENDPOINT
-            id_field = 'itemID'
+            id_field = 'requestID'
             print(f"Using CONSUMABLE datatable endpoint for flow: {flow}")
         elif flow == 'ots':
             datatable_endpoint = OTS_DATATABLE_ENDPOINT
-            id_field = 'iTEMID'
+            id_field = 'id'
             print(f"Using OTS datatable endpoint for flow: {flow}")
         else:
             datatable_endpoint = DATATABLE_ENDPOINT
@@ -900,7 +900,8 @@ def get_master_data_with_flow_cons(item_id, flow):
             print(f"Fetched {len(records)} records from API")
 
             # Filter records by appropriate ID field based on flow
-            matching_records = [r for r in records if r.get(id_field) == item_id]
+            # Try both string and integer comparison for id field
+            matching_records = [r for r in records if str(r.get(id_field)) == str(item_id)]
 
             if matching_records:
                 print(f"Found matching record for {id_field}: {item_id}")
