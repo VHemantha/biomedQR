@@ -419,6 +419,9 @@ function fetchEquipmentData() {
     } else if (flow === 'ots') {
         apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/ots`;
         console.log('🔄 Using OTS endpoint');
+    } else if (flow === 'repair') {
+        apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}/repair`;
+        console.log('🔄 Using REPAIR endpoint');
     } else {
         apiUrl = `/api/get_master_data/${encodeURIComponent(itemId)}`;
         console.log('🔄 Using DEFAULT endpoint');
@@ -445,6 +448,8 @@ function fetchEquipmentData() {
                     activityType = data.data.requestType || 'Consumable Request';
                 } else if (flow === 'ots') {
                     activityType = data.data.requestType || 'One Time Service Request';
+                } else if (flow === 'repair') {
+                    activityType = data.data.requestType || 'Repair Process Request';
                 } else {
                     activityType = data.data.activity || 'default';
                 }
@@ -457,6 +462,8 @@ function fetchEquipmentData() {
                     displayConsumableDetails(data.data);
                 } else if (flow === 'ots') {
                     displayOTSDetails(data.data);
+                } else if (flow === 'repair') {
+                    displayRepairDetails(data.data);
                 } else {
                     displayEquipmentDetails(data.data);
                 }
@@ -571,6 +578,50 @@ function displayOTSDetails(data) {
         requestType: data.requestType,
         requestDateTime: data.requestDateTime,
         contactNumber: data.conactNumber
+    });
+}
+
+function displayRepairDetails(data) {
+    // Map Repair data fields to the HTML elements
+    // Backend uses 'id' as the identifier field for Repair flow (app.py:878)
+    document.getElementById('display-itemID').textContent = data.itemID || '-';
+    document.getElementById('display-hospital').textContent = data.hospital || '-';
+    document.getElementById('display-productModel').textContent = data.productModel || '-';
+    document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
+    document.getElementById('display-supplier').textContent = data.supplierName || '-';
+    document.getElementById('display-activity').textContent = data.requestType || 'Repair Process Request';
+
+    // Format and display request date
+    const requestDate = data.requestDateAndTime || data.requestDateTime || data.createdDate || '-';
+    if (requestDate && requestDate !== '-') {
+        try {
+            const formattedDate = new Date(requestDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('display-serviceDate').textContent = formattedDate;
+        } catch (e) {
+            console.warn('Date formatting failed, using raw value:', e);
+            document.getElementById('display-serviceDate').textContent = requestDate;
+        }
+    } else {
+        document.getElementById('display-serviceDate').textContent = '-';
+    }
+
+    console.log('✅ Repair details displayed');
+    console.log('Data mapping:', {
+        itemID: data.itemID,
+        hospital: data.hospital,
+        productModel: data.productModel,
+        serialNumber: data.serialNumber,
+        unit: data.unit,
+        requestType: data.requestType,
+        requestDateAndTime: data.requestDateAndTime,
+        contactNumber: data.contactNumber,
+        location: data.location
     });
 }
 
