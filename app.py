@@ -488,7 +488,8 @@ def handle_consumable_request():
             'location': location,
             'hospital': hospital,
             'serialNumber': serial_number,
-            'productModel': supplier_name
+            'productModel': supplier_name,
+            'conactNumber': contact_number
             
         }
 
