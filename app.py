@@ -1075,6 +1075,15 @@ def submit_rating(record_id):
 
         # Valid rating text values
         valid_ratings = ['Highly Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Highly Satisfied']
+        rating_map = {
+                        'Highly Dissatisfied': 1,
+                        'Dissatisfied': 2,
+                        'Neutral': 3,
+                        'Satisfied': 4,
+                        'Highly Satisfied': 5
+                    }
+        # Store the numeric value in a variable
+        numrating = rating_map[rating]
 
         if not rating or rating not in valid_ratings:
             return jsonify({
@@ -1099,7 +1108,9 @@ def submit_rating(record_id):
         # Prepare PUT request payload
         # Different endpoints may use different field names for ratings
         if activity_type == 'Consumable Request':
-            update_payload = {'feedback': rating}  # Consumable uses 'feedback' field
+            update_payload = {'feedback': rating,
+                              'customerComment': comments,
+                              'ratingnum': numrating}  # Consumable uses 'feedback' field
         elif activity_type == 'One Time Service Request' or activity_type == 'One Time Service':
             update_payload = {'feedback': rating}  # OTS uses 'feedback' field
         elif activity_type == 'Repair Process Request' or activity_type == 'Repair Request' or activity_type == 'Repair':
