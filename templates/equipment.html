@@ -87,6 +87,11 @@
     </div>
 
     <div class="form-group">
+        <label for="form-modality">Modality:</label>
+        <input type="text" id="form-modality" readonly style="background-color: #f5f5f5;">
+    </div>
+
+    <div class="form-group">
         <label for="form-city">City:</label>
         <input type="text" id="form-city" readonly style="background-color: #f5f5f5;">
     </div>
@@ -151,6 +156,7 @@ let productModel = `{{ productModel }}`;
 let area = '';
 let equipmentLocation = '';
 let productType = '';
+let modality = '';
 let city = '';
 let masterDataLoaded = false;
 let contactNumber = '';
@@ -436,6 +442,7 @@ function fetchAndMapMasterData() {
                 document.getElementById('form-supplierName').value = apiData.supplierName || 'N/A';
                 document.getElementById('form-unit').value = apiData.unit || 'N/A';
                 document.getElementById('form-productType').value = apiData.productType || 'N/A';
+                document.getElementById('form-modality').value = apiData.modality || 'N/A';
                 document.getElementById('form-city').value = apiData.city || 'N/A';
 
                 // Date Fields
@@ -457,10 +464,11 @@ function fetchAndMapMasterData() {
                 unit = apiData.unit || unit;
                 productModel = apiData.productModel || productModel;
                 productType = apiData.productType || '';
+                modality = apiData.modality || '';
                 city = apiData.city || '';
 
                 console.log('✅ Data mapped successfully');
-                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit, productModel, productType, city });
+                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit, productModel, productType, modality, city });
                 updateDebugPanel('✅ Data loaded and mapped successfully!');
 
                 // Show the form section with smooth scroll
@@ -585,6 +593,7 @@ function selectActionRepair(action) {
         contact_number: contactNumber,
         product_model: productModel,
         product_type: productType,
+        modality: modality,
         city: city
     };
 
@@ -697,6 +706,7 @@ function selectActionConsumable(action) {
         contact_number: contactNumber,
         product_model: productModel,
         product_type: productType,
+        modality: modality,
         city: city
     };
 
@@ -809,6 +819,7 @@ function selectActionUserTraining(action) {
         contact_number: contactNumber,
         product_model: productModel,
         product_type: productType,
+        modality: modality,
         city: city
     };
 
@@ -921,6 +932,7 @@ function selectActionOTS(action) {
         contact_number: contactNumber,
         product_model: productModel,
         product_type: productType,
+        modality: modality,
         city: city
     };
 
