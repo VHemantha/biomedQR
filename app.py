@@ -1112,11 +1112,17 @@ def submit_rating(record_id):
                               'customerComment': comments,
                               'ratingnum': numrating}  # Consumable uses 'feedback' field
         elif activity_type == 'One Time Service Request' or activity_type == 'One Time Service':
-            update_payload = {'feedback': rating}  # OTS uses 'feedback' field
+            update_payload = {'feedback': rating,
+                              'comment': comments,
+                              'ratingNumber': numrating}  # OTS uses 'feedback' field
         elif activity_type == 'Repair Process Request' or activity_type == 'Repair Request' or activity_type == 'Repair':
-            update_payload = {'feedback': rating}  # Repair uses 'feedback' field
+            update_payload = {'feedback': rating,
+                              'ratingNumber': numrating,
+                              'comment': comments}  # Repair uses 'feedback' field
         elif activity_type == 'User Training' or activity_type == 'User Training Request':
-            update_payload = {'feedBack': rating}    # User Training uses 'rating' field
+            update_payload = {'feedBack': rating,
+                              'ratingNumber': numrating,
+                              'comment': comments}    # User Training uses 'rating' field
         else:
             update_payload = {'rating': rating}    # Others use 'rating' field
 
