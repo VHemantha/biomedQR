@@ -42,6 +42,14 @@
                     <span class="detail-value" id="display-supplier">-</span>
                 </div>
                 <div class="detail-item">
+                    <span class="detail-label">Product Type:</span>
+                    <span class="detail-value" id="display-productType">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">City:</span>
+                    <span class="detail-value" id="display-city">-</span>
+                </div>
+                <div class="detail-item">
                     <span class="detail-label">Activity:</span>
                     <span class="detail-value" id="display-activity">-</span>
                 </div>
@@ -496,6 +504,8 @@ function displayEquipmentDetails(data) {
     document.getElementById('display-productModel').textContent = data.productModel || '-';
     document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
     document.getElementById('display-supplier').textContent = data.supplierName || '-';
+    document.getElementById('display-productType').textContent = data.productType || '-';
+    document.getElementById('display-city').textContent = data.city || '-';
 
     // Display last updated date as service date
     const serviceDate = data.lastUpdatedDate || data.createdDate || '-';
@@ -512,6 +522,8 @@ function displayConsumableDetails(data) {
     document.getElementById('display-productModel').textContent = data['productName(Optional)'] || '-';
     document.getElementById('display-serialNumber').textContent = data['serialNumber(Optional)'] || '-';
     document.getElementById('display-supplier').textContent = data['supplierName(Optional)'] || '-';
+    document.getElementById('display-productType').textContent = data.productType || '-';
+    document.getElementById('display-city').textContent = data.city || '-';
     document.getElementById('display-activity').textContent = data.requestType || 'Consumable Request';
 
     // Format and display request date
@@ -553,6 +565,8 @@ function displayOTSDetails(data) {
     document.getElementById('display-productModel').textContent = data.productModel || data.modality || '-';
     document.getElementById('display-serialNumber').textContent = data.serialNumber1 || data.serialNumber || '-';
     document.getElementById('display-supplier').textContent = data.supplierName || '-';
+    document.getElementById('display-productType').textContent = data.productType || '-';
+    document.getElementById('display-city').textContent = data.city || '-';
     document.getElementById('display-activity').textContent = data.requestType || 'One Time Service Request';
 
     // Format and display request date
@@ -596,6 +610,8 @@ function displayRepairDetails(data) {
     document.getElementById('display-productModel').textContent = data.productModel || '-';
     document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
     document.getElementById('display-supplier').textContent = data.supplierName || '-';
+    document.getElementById('display-productType').textContent = data.productType || '-';
+    document.getElementById('display-city').textContent = data.city || '-';
     document.getElementById('display-activity').textContent = data.requestType || 'Repair Process Request';
 
     // Format and display request date
@@ -633,14 +649,16 @@ function displayRepairDetails(data) {
 }
 
 function displayUTDetails(data) {
-    // Map UT (Utilization Tracker) data fields to the HTML elements
+    // Map UT (User Training) data fields to the HTML elements
     // Following the same pattern as OTS and Repair flows
     document.getElementById('display-itemID').textContent = data.itemID || '-';
-    document.getElementById('display-hospital').textContent = data.hospital || '-';
+    document.getElementById('display-hospital').textContent = data.hospitalDepartment || data.hospital || '-';
     document.getElementById('display-productModel').textContent = data.productModel || data.modality || '-';
-    document.getElementById('display-serialNumber').textContent = data.serialNumber || '-';
+    document.getElementById('display-serialNumber').textContent = data.prodcutSerielNumber || data.serialNumber || '-';
     document.getElementById('display-supplier').textContent = data.supplierName || '-';
-    document.getElementById('display-activity').textContent = data.requestType || 'Utilization Tracker Request';
+    document.getElementById('display-productType').textContent = data.productType || '-';
+    document.getElementById('display-city').textContent = data.city || '-';
+    document.getElementById('display-activity').textContent = data.requestType || 'User Training';
 
     // Format and display request date
     const requestDate = data.requestDateTime || data['requestDate&Time'] || data.createdDate || '-';

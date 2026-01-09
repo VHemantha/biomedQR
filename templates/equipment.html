@@ -80,17 +80,27 @@
         <label for="form-unit">Unit:</label>
         <input type="text" id="form-unit" readonly style="background-color: #f5f5f5;">
     </div>
-    
+
+    <div class="form-group">
+        <label for="form-productType">Product Type:</label>
+        <input type="text" id="form-productType" readonly style="background-color: #f5f5f5;">
+    </div>
+
+    <div class="form-group">
+        <label for="form-city">City:</label>
+        <input type="text" id="form-city" readonly style="background-color: #f5f5f5;">
+    </div>
+
     <div class="form-group">
         <label for="form-createdDate">Created Date:</label>
         <input type="text" id="form-createdDate" readonly style="background-color: #f5f5f5;">
     </div>
-    
+
     <div class="form-group">
         <label for="form-lastUpdatedDate">Last Updated Date:</label>
         <input type="text" id="form-lastUpdatedDate" readonly style="background-color: #f5f5f5;">
     </div>
-    
+
     <!-- Contact Number - Editable Field -->
     <div class="form-group">
         <label for="form-contactNumber">Contact Number: <span style="color: #fc466b;">*</span></label>
@@ -140,6 +150,8 @@ let itemId = `{{ item_id }}`;
 let productModel = `{{ productModel }}`;
 let area = '';
 let equipmentLocation = '';
+let productType = '';
+let city = '';
 let masterDataLoaded = false;
 let contactNumber = '';
 let autoScannedData = false;
@@ -423,7 +435,9 @@ function fetchAndMapMasterData() {
                 document.getElementById('form-serialNumber').value = apiData.serialNumber || 'N/A';
                 document.getElementById('form-supplierName').value = apiData.supplierName || 'N/A';
                 document.getElementById('form-unit').value = apiData.unit || 'N/A';
-                
+                document.getElementById('form-productType').value = apiData.productType || 'N/A';
+                document.getElementById('form-city').value = apiData.city || 'N/A';
+
                 // Date Fields
                 document.getElementById('form-createdDate').value = apiData.createdDate || 'N/A';
                 document.getElementById('form-lastUpdatedDate').value = apiData.lastUpdatedDate || 'N/A';
@@ -442,9 +456,11 @@ function fetchAndMapMasterData() {
                 supplierName = apiData.supplierName || supplierName;
                 unit = apiData.unit || unit;
                 productModel = apiData.productModel || productModel;
+                productType = apiData.productType || '';
+                city = apiData.city || '';
 
                 console.log('✅ Data mapped successfully');
-                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit, productModel });
+                console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit, productModel, productType, city });
                 updateDebugPanel('✅ Data loaded and mapped successfully!');
 
                 // Show the form section with smooth scroll
@@ -567,7 +583,9 @@ function selectActionRepair(action) {
         unit: unit,
         item_id: itemId,
         contact_number: contactNumber,
-        product_model: productModel
+        product_model: productModel,
+        product_type: productType,
+        city: city
     };
 
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
@@ -677,7 +695,9 @@ function selectActionConsumable(action) {
         unit: unit,
         item_id: itemId,
         contact_number: contactNumber,
-        product_model: productModel
+        product_model: productModel,
+        product_type: productType,
+        city: city
     };
 
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
@@ -787,7 +807,9 @@ function selectActionUserTraining(action) {
         unit: unit,
         item_id: itemId,
         contact_number: contactNumber,
-        product_model: productModel
+        product_model: productModel,
+        product_type: productType,
+        city: city
     };
 
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
@@ -897,7 +919,9 @@ function selectActionOTS(action) {
         unit: unit,
         item_id: itemId,
         contact_number: contactNumber,
-        product_model: productModel
+        product_model: productModel,
+        product_type: productType,
+        city: city
     };
 
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
