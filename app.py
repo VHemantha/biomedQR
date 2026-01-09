@@ -441,6 +441,8 @@ def handle_consumable_request():
         unit = data.get('unit', '').strip()
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
+        product_type = data.get('product_type', '').strip()
+        city = data.get('city', '').strip()
 
         # Validation
         if not equipment_id:
@@ -489,7 +491,8 @@ def handle_consumable_request():
             'hospital': hospital,
             'serialNumber': serial_number,
             'productModel': supplier_name,
-            'conactNumber': contact_number
+            'conactNumber': contact_number,
+            'productName': product_type
             
         }
 
@@ -551,6 +554,8 @@ def handle_userT_request():
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
         product_model = data.get('product_model', '').strip()
+        product_type = data.get('product_type', '').strip()
+        city = data.get('city', '').strip()
 
         # Validation
         if not equipment_id:
@@ -598,10 +603,12 @@ def handle_userT_request():
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
             'hospitalDepartment': hospital,
-            'modality': product_model,
+            'productModel': product_model,
             'prodcutSerielNumber': serial_number,
             'productModel': product_model,
-            'requesterMobile': contact_number
+            'requesterMobile': contact_number,
+            'productType': product_type,
+            'city': city
 
         }
 
@@ -661,6 +668,8 @@ def handle_ots_request():
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
         product_model = data.get('product_model', '').strip()
+        product_type = data.get('product_type', '').strip()
+        city = data.get('city', '').strip()
 
         # Validation
         if not equipment_id:
@@ -711,7 +720,9 @@ def handle_ots_request():
             'modality': product_model,
             'serialNumber1': serial_number,
             'productModel': product_model,
-            'conactNumber': contact_number
+            'conactNumber': contact_number,
+            'productName': product_type,
+            'city': city
 
         }
 
@@ -771,6 +782,8 @@ def handle_repair_request():
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
         product_model = data.get('product_model', '').strip()
+        product_type = data.get('product_type', '').strip()
+        city = data.get('city', '').strip()
 
         # Validation
         if not equipment_id:
@@ -821,7 +834,9 @@ def handle_repair_request():
             'serialNumber': serial_number,
             'productModel': product_model,
             'unit': unit,
-            'contactNumber': contact_number
+            'contactNumber': contact_number,
+            'productType1': product_type,
+            'city': city
 
         }
 
