@@ -442,6 +442,7 @@ def handle_consumable_request():
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
         product_type = data.get('product_type', '').strip()
+        modality = data.get('modality', '').strip()
         city = data.get('city', '').strip()
 
         # Validation
@@ -492,8 +493,10 @@ def handle_consumable_request():
             'serialNumber': serial_number,
             'productModel': supplier_name,
             'conactNumber': contact_number,
-            'productName': product_type
-            
+            'productName': product_type,
+            'modality': modality,
+            'city': city
+
         }
 
         print(f"📤 Sending Consumable Request to API:")
@@ -555,6 +558,7 @@ def handle_userT_request():
         contact_number = data.get('contact_number', '').strip()
         product_model = data.get('product_model', '').strip()
         product_type = data.get('product_type', '').strip()
+        modality = data.get('modality', '').strip()
         city = data.get('city', '').strip()
 
         # Validation
@@ -608,6 +612,7 @@ def handle_userT_request():
             'productModel': product_model,
             'requesterMobile': contact_number,
             'productType': product_type,
+            'modality': modality,
             'city': city
 
         }
@@ -669,6 +674,7 @@ def handle_ots_request():
         contact_number = data.get('contact_number', '').strip()
         product_model = data.get('product_model', '').strip()
         product_type = data.get('product_type', '').strip()
+        modality = data.get('modality', '').strip()
         city = data.get('city', '').strip()
 
         # Validation
@@ -722,6 +728,7 @@ def handle_ots_request():
             'productModel': product_model,
             'conactNumber': contact_number,
             'productName': product_type,
+            'modality': modality,
             'city': city
 
         }
@@ -782,6 +789,7 @@ def handle_repair_request():
         item_id = data.get('item_id', '').strip()
         contact_number = data.get('contact_number', '').strip()
         product_model = data.get('product_model', '').strip()
+        modality = data.get('modality', '').strip()
         product_type = data.get('product_type', '').strip()
         city = data.get('city', '').strip()
 
@@ -836,6 +844,7 @@ def handle_repair_request():
             'unit': unit,
             'contactNumber': contact_number,
             'productType1': product_type,
+            'modality': modality,
             'city': city
 
         }
