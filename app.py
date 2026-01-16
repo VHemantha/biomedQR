@@ -723,6 +723,7 @@ def handle_ots_request():
             'hospital': hospital,
             'modality': product_model,
             'serialNumber1': serial_number,
+            'requestType' : request_type,
             'productModel': product_model,
             'conactNumber': contact_number,
             'productName': product_type,
