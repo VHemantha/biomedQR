@@ -718,8 +718,6 @@ def handle_ots_request():
         api_data = {
             'title': action_title,
             'iTEMID': item_id,
-            'requestType': request_type,
-            'area': area,
             'requestDateTime': datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f'),
             'location': location,
             'hospital': hospital,
@@ -729,7 +727,7 @@ def handle_ots_request():
             'conactNumber': contact_number,
             'productName': product_type,
             'modality': modality,
-            'city': city
+            'area': city
 
         }
 
