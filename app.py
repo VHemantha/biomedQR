@@ -613,7 +613,8 @@ def handle_userT_request():
             'requesterMobile': contact_number,
             'productType': product_type,
             'modality': modality,
-            'city': city
+            'city': city,
+            'manufacturer': supplier_name
 
         }
 
