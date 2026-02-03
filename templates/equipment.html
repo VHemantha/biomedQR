@@ -118,7 +118,7 @@
 <div class="action-options" id="actionOptions" style="opacity: 0.5; pointer-events: none;">
     <button class="action-btn repair" onclick="selectActionRepair('repair')" id="repairBtn" disabled>
         <div class="action-icon">🔧</div>
-        <div>Repair</div>
+        <div>Corrective Maintenance</div>
     </button>
     
     <button class="action-btn training" onclick="selectActionUserTraining('user_training')" id="trainingBtn" disabled>
@@ -572,7 +572,7 @@ function selectActionRepair(action) {
     const selectedAction = 'Repair Request';
 
     console.log('='.repeat(50));
-    console.log('🔧 REPAIR REQUEST SELECTED');
+    console.log('🔧 CORRECTIVE MAINTENANCE SELECTED');
     console.log('='.repeat(50));
     updateDebugPanel(`Submitting ${selectedAction}...`);
 
