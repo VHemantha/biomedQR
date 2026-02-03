@@ -826,8 +826,8 @@ def handle_repair_request():
         print('=' * 60)
 
         current_date = datetime.now().strftime('%Y-%m-%d')
-        action_title = f"Repair Process Request - {item_id}"
-        request_type = "Repair Process Request"
+        action_title = f"Corrective Maintenance - {item_id}"
+        request_type = "Corrective Maintenance"
         userID = 'EDQETBXHJTRBOFEXNT3JXAIVAU3BP2KB'
 
         # API payload for user training request
