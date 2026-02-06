@@ -471,7 +471,8 @@ function fetchAndMapMasterData() {
                 console.log('State:', { area, equipmentLocation, hospital, unitCode, serialNumber, supplierName, unit, productModel, productType, modality, city });
                 updateDebugPanel('✅ Data loaded and mapped successfully!');
 
-                // Show the form section with smooth scroll
+                // Hide debug panel and show the form section with smooth scroll
+                document.getElementById('debugPanel').style.display = 'none';
                 formSection.style.display = 'block';
                 formSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
