@@ -232,8 +232,8 @@ function roundRect(ctx, x, y, w, h, r) {
 
 function createStickerCanvas(qrSourceCanvas) {
     return new Promise((resolve, reject) => {
-        const W = 360;
-        const H = 640; // 9:16 aspect ratio
+        const W = 400;
+        const H = 600; // 4:6 ratio
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -241,7 +241,7 @@ function createStickerCanvas(qrSourceCanvas) {
         canvas.height = H;
 
         // === BACKGROUND — light purple gradient ===
-        const bgGrad = ctx.createLinearGradient(0, 0, W * 0.3, H);
+        const bgGrad = ctx.createLinearGradient(0, 0, W * 0.4, H);
         bgGrad.addColorStop(0, '#f5f0ff');
         bgGrad.addColorStop(0.35, '#ede9fe');
         bgGrad.addColorStop(0.7, '#e8d5f5');
@@ -251,146 +251,144 @@ function createStickerCanvas(qrSourceCanvas) {
 
         // Subtle decorative accent circles
         ctx.save();
-        ctx.globalAlpha = 0.055;
+        ctx.globalAlpha = 0.05;
         ctx.fillStyle = '#8b5cf6';
-        ctx.beginPath();
-        ctx.arc(W * 0.88, H * 0.12, 85, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(W * 0.08, H * 0.82, 65, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(W * 0.75, H * 0.92, 45, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(W * 0.9, H * 0.08, 70, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(W * 0.06, H * 0.88, 55, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
 
         // Sticker border
         ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
         ctx.lineWidth = 2.5;
-        roundRect(ctx, 2, 2, W - 4, H - 4, 22);
+        roundRect(ctx, 2, 2, W - 4, H - 4, 18);
         ctx.stroke();
 
-        // === QR CODE with white card ===
-        const qrSize = 250;
-        const qrPad = 18;
+        // === QR CODE with white card (centered top) ===
+        const qrSize = 240;
+        const qrPad = 16;
         const qrX = (W - qrSize) / 2;
-        const qrY = 35;
+        const qrY = 28;
 
         // White card shadow
         ctx.save();
         ctx.shadowColor = 'rgba(124, 58, 237, 0.18)';
-        ctx.shadowBlur = 22;
-        ctx.shadowOffsetY = 6;
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 5;
         ctx.fillStyle = '#ffffff';
-        roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 18);
+        roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 16);
         ctx.fill();
         ctx.restore();
 
         // White card border
         ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
         ctx.lineWidth = 1;
-        roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 18);
+        roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 16);
         ctx.stroke();
 
-        // Draw QR code image
+        // Draw QR code
         ctx.drawImage(qrSourceCanvas, qrX, qrY, qrSize, qrSize);
 
-        // === ITEM NUMBER ===
-        const infoY = qrY + qrSize + 52;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        // === MIDDLE ROW: Logo (left) | Serial Number (right) ===
+        const midY = qrY + qrSize + qrPad + 30;
+        const rowH = 90;
 
-        ctx.font = '600 11px Arial, sans-serif';
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillText('ITEM NO', W / 2, infoY);
-
-        ctx.font = 'bold 22px Arial, sans-serif';
-        ctx.fillStyle = '#4c1d95';
-        ctx.fillText(currentEquipmentId, W / 2, infoY + 24);
-
-        // === SERIAL NUMBER ===
-        ctx.font = '600 11px Arial, sans-serif';
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillText('SERIAL NO', W / 2, infoY + 58);
-
-        ctx.font = 'bold 22px Arial, sans-serif';
-        ctx.fillStyle = '#4c1d95';
-        ctx.fillText(currentSerialCode, W / 2, infoY + 82);
-
-        // === DECORATIVE DIVIDER ===
-        const divY = infoY + 112;
-        const divGrad = ctx.createLinearGradient(W * 0.12, 0, W * 0.88, 0);
-        divGrad.addColorStop(0, 'rgba(139, 92, 246, 0)');
-        divGrad.addColorStop(0.25, 'rgba(139, 92, 246, 0.35)');
-        divGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.6)');
-        divGrad.addColorStop(0.75, 'rgba(139, 92, 246, 0.35)');
-        divGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
-        ctx.strokeStyle = divGrad;
-        ctx.lineWidth = 1.5;
+        // Thin divider line above middle row
+        const topDivGrad = ctx.createLinearGradient(W * 0.08, 0, W * 0.92, 0);
+        topDivGrad.addColorStop(0, 'rgba(139, 92, 246, 0)');
+        topDivGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.3)');
+        topDivGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+        ctx.strokeStyle = topDivGrad;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(W * 0.12, divY);
-        ctx.lineTo(W * 0.88, divY);
+        ctx.moveTo(W * 0.08, midY - 14);
+        ctx.lineTo(W * 0.92, midY - 14);
         ctx.stroke();
 
-        // Small diamond accent at center of divider
-        ctx.fillStyle = '#8b5cf6';
-        ctx.save();
-        ctx.translate(W / 2, divY);
-        ctx.rotate(Math.PI / 4);
-        ctx.fillRect(-4, -4, 8, 8);
-        ctx.restore();
+        // === LOGO & SERIAL DRAWING (needs logo loaded) ===
+        const drawContent = (logoImg) => {
+            const rowCenterY = midY + rowH / 2;
 
-        // === LOGO & COMPANY INFO ===
-        const drawBottom = (logoImg) => {
+            // -- LEFT SIDE: Logo --
             if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
-                const logoMaxW = 140;
                 const logoAspect = logoImg.naturalWidth / logoImg.naturalHeight;
+                const logoMaxW = 140;
                 const logoW = logoMaxW;
                 const logoH = logoW / logoAspect;
-                const logoX = (W - logoW) / 2;
-                const logoY = divY + 22;
+                const logoX = 28;
+                const logoY = rowCenterY - logoH / 2;
                 ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
-
-                // Company name
-                const compY = logoY + logoH + 18;
-                ctx.font = '600 13px Arial, sans-serif';
-                ctx.fillStyle = '#581c87';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('Biomed International (Pvt) Ltd', W / 2, compY);
-
-                // Hotline
-                ctx.font = 'bold 15px Arial, sans-serif';
-                ctx.fillStyle = '#7c3aed';
-                ctx.fillText('Hotline: 0777817817', W / 2, compY + 24);
-            } else {
-                // Fallback without logo
-                const compY = divY + 35;
-                ctx.font = '600 14px Arial, sans-serif';
-                ctx.fillStyle = '#581c87';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('Biomed International (Pvt) Ltd', W / 2, compY);
-
-                ctx.font = 'bold 16px Arial, sans-serif';
-                ctx.fillStyle = '#7c3aed';
-                ctx.fillText('Hotline: 0777817817', W / 2, compY + 28);
             }
+
+            // Vertical separator between logo and serial
+            ctx.strokeStyle = 'rgba(139, 92, 246, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(W / 2 + 5, midY);
+            ctx.lineTo(W / 2 + 5, midY + rowH);
+            ctx.stroke();
+
+            // -- RIGHT SIDE: Serial Number --
+            const rightCenterX = W * 0.75 + 5;
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.font = '600 11px Arial, sans-serif';
+            ctx.fillStyle = '#8b5cf6';
+            ctx.fillText('SERIAL NO', rightCenterX, rowCenterY - 14);
+
+            ctx.font = 'bold 20px Arial, sans-serif';
+            ctx.fillStyle = '#4c1d95';
+            ctx.fillText(currentSerialCode, rightCenterX, rowCenterY + 14);
+
+            // === BOTTOM: Company info (centered) ===
+            const botDivY = midY + rowH + 14;
+
+            // Divider above footer
+            const botDivGrad = ctx.createLinearGradient(W * 0.08, 0, W * 0.92, 0);
+            botDivGrad.addColorStop(0, 'rgba(139, 92, 246, 0)');
+            botDivGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.3)');
+            botDivGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+            ctx.strokeStyle = botDivGrad;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(W * 0.08, botDivY);
+            ctx.lineTo(W * 0.92, botDivY);
+            ctx.stroke();
+
+            // Diamond accent
+            ctx.fillStyle = '#8b5cf6';
+            ctx.save();
+            ctx.translate(W / 2, botDivY);
+            ctx.rotate(Math.PI / 4);
+            ctx.fillRect(-3.5, -3.5, 7, 7);
+            ctx.restore();
+
+            // Company name
+            ctx.textAlign = 'center';
+            ctx.font = '600 13px Arial, sans-serif';
+            ctx.fillStyle = '#581c87';
+            ctx.fillText('Biomed International (Pvt) Ltd', W / 2, botDivY + 28);
+
+            // Hotline
+            ctx.font = 'bold 15px Arial, sans-serif';
+            ctx.fillStyle = '#7c3aed';
+            ctx.fillText('Hotline: 0777817817', W / 2, botDivY + 50);
 
             resolve(canvas);
         };
 
         // Use preloaded logo or attempt reload
         if (biomedLogo.complete && biomedLogo.naturalWidth > 0) {
-            drawBottom(biomedLogo);
+            drawContent(biomedLogo);
         } else {
             const tempLogo = new Image();
             tempLogo.crossOrigin = 'anonymous';
             tempLogo.src = '/static/images/biomed_logo.png';
             let resolved = false;
-            tempLogo.onload = () => { if (!resolved) { resolved = true; drawBottom(tempLogo); } };
-            tempLogo.onerror = () => { if (!resolved) { resolved = true; drawBottom(null); } };
-            setTimeout(() => { if (!resolved) { resolved = true; drawBottom(null); } }, 3000);
+            tempLogo.onload = () => { if (!resolved) { resolved = true; drawContent(tempLogo); } };
+            tempLogo.onerror = () => { if (!resolved) { resolved = true; drawContent(null); } };
+            setTimeout(() => { if (!resolved) { resolved = true; drawContent(null); } }, 3000);
         }
     });
 }
