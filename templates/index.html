@@ -34,7 +34,7 @@
         <p style="margin-top: 10px; color: #666; font-size: 14px;">
             📱 This QR code will open the equipment action menu
         </p>
-        <button class="btn" onclick="downloadQR()" style="margin-top: 15px;">⬇️ Download QR Code with Serial Number</button>
+        <button class="btn" onclick="downloadQR()" style="margin-top: 15px;">⬇️ Download QR Sticker</button>
     </div>
 </div>
 
@@ -210,143 +210,225 @@ function downloadQR() {
     }
 }
 
-function downloadCombinedImageFromCanvas(qrCanvas) {
-    try {
-        // Create a new canvas for the combined image
-        const combinedCanvas = document.createElement('canvas');
-        const ctx = combinedCanvas.getContext('2d');
-        
-        // QR code dimensions
-        const qrWidth = qrCanvas.width;
-        const qrHeight = qrCanvas.height;
-        
-        // Serial number section height
-        const serialHeight = 80;
-        const padding = 20;
-        
-        // Set combined canvas size
-        combinedCanvas.width = qrWidth;
-        combinedCanvas.height = qrHeight + serialHeight;
-        
-        // Fill white background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
-        
-        // Draw QR code
-        ctx.drawImage(qrCanvas, 0, 0);
-        
-        // Draw serial number section
-        // Background for serial number
-        ctx.fillStyle = '#f7fafc';
-        ctx.fillRect(0, qrHeight, qrWidth, serialHeight);
-        
-        // Border line
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 2;
+// Preload logo for sticker
+const biomedLogo = new Image();
+biomedLogo.crossOrigin = 'anonymous';
+biomedLogo.src = '/static/images/biomed_logo.png';
+
+// Rounded rectangle helper
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+}
+
+function createStickerCanvas(qrSourceCanvas) {
+    return new Promise((resolve, reject) => {
+        const W = 360;
+        const H = 640; // 9:16 aspect ratio
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = W;
+        canvas.height = H;
+
+        // === BACKGROUND — light purple gradient ===
+        const bgGrad = ctx.createLinearGradient(0, 0, W * 0.3, H);
+        bgGrad.addColorStop(0, '#f5f0ff');
+        bgGrad.addColorStop(0.35, '#ede9fe');
+        bgGrad.addColorStop(0.7, '#e8d5f5');
+        bgGrad.addColorStop(1, '#f3e8ff');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Subtle decorative accent circles
+        ctx.save();
+        ctx.globalAlpha = 0.055;
+        ctx.fillStyle = '#8b5cf6';
         ctx.beginPath();
-        ctx.moveTo(0, qrHeight);
-        ctx.lineTo(qrWidth, qrHeight);
+        ctx.arc(W * 0.88, H * 0.12, 85, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(W * 0.08, H * 0.82, 65, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(W * 0.75, H * 0.92, 45, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Sticker border
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
+        ctx.lineWidth = 2.5;
+        roundRect(ctx, 2, 2, W - 4, H - 4, 22);
         ctx.stroke();
-        
-        // Draw serial number text
-        ctx.fillStyle = '#2d3748';
-        ctx.font = 'bold 24px Arial, sans-serif';
+
+        // === QR CODE with white card ===
+        const qrSize = 250;
+        const qrPad = 18;
+        const qrX = (W - qrSize) / 2;
+        const qrY = 35;
+
+        // White card shadow
+        ctx.save();
+        ctx.shadowColor = 'rgba(124, 58, 237, 0.18)';
+        ctx.shadowBlur = 22;
+        ctx.shadowOffsetY = 6;
+        ctx.fillStyle = '#ffffff';
+        roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 18);
+        ctx.fill();
+        ctx.restore();
+
+        // White card border
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 18);
+        ctx.stroke();
+
+        // Draw QR code image
+        ctx.drawImage(qrSourceCanvas, qrX, qrY, qrSize, qrSize);
+
+        // === ITEM NUMBER ===
+        const infoY = qrY + qrSize + 52;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
-        // Label
-        ctx.font = '16px Arial, sans-serif';
-        ctx.fillStyle = '#718096';
-        ctx.fillText('Serial Number:', qrWidth / 2, qrHeight + 25);
-        
-        // Serial Code
-        ctx.font = 'bold 28px Arial, sans-serif';
-        ctx.fillStyle = '#2d3748';
-        ctx.fillText(currentSerialCode, qrWidth / 2, qrHeight + 55);
-        
-        // Download the combined image
+
+        ctx.font = '600 11px Arial, sans-serif';
+        ctx.fillStyle = '#8b5cf6';
+        ctx.fillText('ITEM NO', W / 2, infoY);
+
+        ctx.font = 'bold 22px Arial, sans-serif';
+        ctx.fillStyle = '#4c1d95';
+        ctx.fillText(currentEquipmentId, W / 2, infoY + 24);
+
+        // === SERIAL NUMBER ===
+        ctx.font = '600 11px Arial, sans-serif';
+        ctx.fillStyle = '#8b5cf6';
+        ctx.fillText('SERIAL NO', W / 2, infoY + 58);
+
+        ctx.font = 'bold 22px Arial, sans-serif';
+        ctx.fillStyle = '#4c1d95';
+        ctx.fillText(currentSerialCode, W / 2, infoY + 82);
+
+        // === DECORATIVE DIVIDER ===
+        const divY = infoY + 112;
+        const divGrad = ctx.createLinearGradient(W * 0.12, 0, W * 0.88, 0);
+        divGrad.addColorStop(0, 'rgba(139, 92, 246, 0)');
+        divGrad.addColorStop(0.25, 'rgba(139, 92, 246, 0.35)');
+        divGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.6)');
+        divGrad.addColorStop(0.75, 'rgba(139, 92, 246, 0.35)');
+        divGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+        ctx.strokeStyle = divGrad;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(W * 0.12, divY);
+        ctx.lineTo(W * 0.88, divY);
+        ctx.stroke();
+
+        // Small diamond accent at center of divider
+        ctx.fillStyle = '#8b5cf6';
+        ctx.save();
+        ctx.translate(W / 2, divY);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillRect(-4, -4, 8, 8);
+        ctx.restore();
+
+        // === LOGO & COMPANY INFO ===
+        const drawBottom = (logoImg) => {
+            if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+                const logoMaxW = 140;
+                const logoAspect = logoImg.naturalWidth / logoImg.naturalHeight;
+                const logoW = logoMaxW;
+                const logoH = logoW / logoAspect;
+                const logoX = (W - logoW) / 2;
+                const logoY = divY + 22;
+                ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+
+                // Company name
+                const compY = logoY + logoH + 18;
+                ctx.font = '600 13px Arial, sans-serif';
+                ctx.fillStyle = '#581c87';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Biomed International (Pvt) Ltd', W / 2, compY);
+
+                // Hotline
+                ctx.font = 'bold 15px Arial, sans-serif';
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillText('Hotline: 0777817817', W / 2, compY + 24);
+            } else {
+                // Fallback without logo
+                const compY = divY + 35;
+                ctx.font = '600 14px Arial, sans-serif';
+                ctx.fillStyle = '#581c87';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Biomed International (Pvt) Ltd', W / 2, compY);
+
+                ctx.font = 'bold 16px Arial, sans-serif';
+                ctx.fillStyle = '#7c3aed';
+                ctx.fillText('Hotline: 0777817817', W / 2, compY + 28);
+            }
+
+            resolve(canvas);
+        };
+
+        // Use preloaded logo or attempt reload
+        if (biomedLogo.complete && biomedLogo.naturalWidth > 0) {
+            drawBottom(biomedLogo);
+        } else {
+            const tempLogo = new Image();
+            tempLogo.crossOrigin = 'anonymous';
+            tempLogo.src = '/static/images/biomed_logo.png';
+            let resolved = false;
+            tempLogo.onload = () => { if (!resolved) { resolved = true; drawBottom(tempLogo); } };
+            tempLogo.onerror = () => { if (!resolved) { resolved = true; drawBottom(null); } };
+            setTimeout(() => { if (!resolved) { resolved = true; drawBottom(null); } }, 3000);
+        }
+    });
+}
+
+function downloadCombinedImageFromCanvas(qrCanvas) {
+    createStickerCanvas(qrCanvas).then(stickerCanvas => {
         const link = document.createElement('a');
         link.download = `qr_${currentEquipmentId}_${currentSerialCode}.png`;
-        link.href = combinedCanvas.toDataURL('image/png');
+        link.href = stickerCanvas.toDataURL('image/png');
         link.click();
-        
-        showStatus('QR Code with Serial Number downloaded successfully!', 'success');
-    } catch (error) {
+        showStatus('QR Sticker downloaded successfully!', 'success');
+    }).catch(error => {
         console.error('Download error:', error);
-        showStatus('Failed to create combined image: ' + error.message, 'error');
-    }
+        showStatus('Failed to create sticker: ' + error.message, 'error');
+    });
 }
 
 function downloadCombinedImageFromImg(qrImg) {
     try {
-        // Create a temporary canvas to convert the image
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
-        
         tempCanvas.width = qrImg.naturalWidth || 300;
         tempCanvas.height = qrImg.naturalHeight || 300;
-        
-        // Draw the QR image on temp canvas
         tempCtx.drawImage(qrImg, 0, 0);
-        
-        // Now create the combined image
-        const combinedCanvas = document.createElement('canvas');
-        const ctx = combinedCanvas.getContext('2d');
-        
-        // QR code dimensions
-        const qrWidth = tempCanvas.width;
-        const qrHeight = tempCanvas.height;
-        
-        // Serial number section height
-        const serialHeight = 80;
-        
-        // Set combined canvas size
-        combinedCanvas.width = qrWidth;
-        combinedCanvas.height = qrHeight + serialHeight;
-        
-        // Fill white background
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
-        
-        // Draw QR code
-        ctx.drawImage(tempCanvas, 0, 0);
-        
-        // Draw serial number section
-        // Background for serial number
-        ctx.fillStyle = '#f7fafc';
-        ctx.fillRect(0, qrHeight, qrWidth, serialHeight);
-        
-        // Border line
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, qrHeight);
-        ctx.lineTo(qrWidth, qrHeight);
-        ctx.stroke();
-        
-        // Draw serial number text
-        // Label
-        ctx.font = '16px Arial, sans-serif';
-        ctx.fillStyle = '#718096';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Serial Number:', qrWidth / 2, qrHeight + 25);
-        
-        // Serial Code
-        ctx.font = 'bold 28px Arial, sans-serif';
-        ctx.fillStyle = '#2d3748';
-        ctx.fillText(currentSerialCode, qrWidth / 2, qrHeight + 55);
-        
-        // Download the combined image
-        const link = document.createElement('a');
-        link.download = `qr_${currentEquipmentId}_${currentSerialCode}.png`;
-        link.href = combinedCanvas.toDataURL('image/png');
-        link.click();
-        
-        showStatus('QR Code with Serial Number downloaded successfully!', 'success');
+
+        createStickerCanvas(tempCanvas).then(stickerCanvas => {
+            const link = document.createElement('a');
+            link.download = `qr_${currentEquipmentId}_${currentSerialCode}.png`;
+            link.href = stickerCanvas.toDataURL('image/png');
+            link.click();
+            showStatus('QR Sticker downloaded successfully!', 'success');
+        }).catch(error => {
+            console.error('Download error:', error);
+            showStatus('Failed to create sticker: ' + error.message, 'error');
+        });
     } catch (error) {
         console.error('Download error:', error);
-        showStatus('Failed to create combined image. This might be due to CORS restrictions. Try using the JS Library method instead.', 'error');
+        showStatus('Failed to create sticker. Try using the JS Library method instead.', 'error');
     }
 }
 
