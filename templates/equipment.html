@@ -60,6 +60,11 @@
         <label for="form-productLocation">Hospital / Product Location:</label>
         <input type="text" id="form-productLocation" readonly style="background-color: #f5f5f5;">
     </div>
+
+    <div class="form-group">
+        <label for="form-fieldEngineer">Field Engineer:</label>
+        <input type="text" id="form-fieldEngineer" readonly style="background-color: #f5f5f5;">
+    </div>
     
     <div class="form-group">
         <label for="form-productModel">Product Model / Modality:</label>
@@ -160,6 +165,7 @@ let modality = '';
 let city = '';
 let masterDataLoaded = false;
 let contactNumber = '';
+let fieldEngineer = '';
 let autoScannedData = false;
 
 // Barcode/QR Scanner Detection Variables
@@ -437,6 +443,7 @@ function fetchAndMapMasterData() {
                 document.getElementById('form-area').value = apiData.area || 'N/A';
                 document.getElementById('form-location').value = apiData.location || 'N/A';
                 document.getElementById('form-productLocation').value = apiData.productLocation || 'N/A';
+                document.getElementById('form-fieldEngineer').value = apiData.fe || 'N/A';
                 document.getElementById('form-productModel').value = apiData.productModel || 'N/A';
                 document.getElementById('form-serialNumber').value = apiData.serialNumber || 'N/A';
                 document.getElementById('form-supplierName').value = apiData.supplierName || 'N/A';
@@ -458,6 +465,7 @@ function fetchAndMapMasterData() {
                 area = apiData.area || '';
                 equipmentLocation = apiData.location || '';
                 hospital = apiData.productLocation || hospital;
+                fieldEngineer = apiData.fe || '';
                 unitCode = apiData.productModel || unitCode;
                 serialNumber = apiData.serialNumber || serialNumber;
                 supplierName = apiData.supplierName || supplierName;
@@ -708,7 +716,8 @@ function selectActionConsumable(action) {
         product_model: productModel,
         product_type: productType,
         modality: modality,
-        city: city
+        city: city,
+        field_engineer: fieldEngineer
     };
 
     console.log('📤 Request Payload:', JSON.stringify(requestPayload, null, 2));
