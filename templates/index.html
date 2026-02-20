@@ -348,30 +348,49 @@ function createStickerCanvas(qrSourceCanvas) {
             // Draw QR code
             ctx.drawImage(qrSourceCanvas, qrX, qrY, qrSize, qrSize);
 
-            // === SERIAL NUMBER + HOSPITE (centered below QR) ===
-            const serialY = qrY + qrSize + qrPad + 28;
-            ctx.textAlign = 'left';
+            // === SERIAL NUMBER + HOSPITAL (centered, auto-fit) ===
+            const serialY = qrY + qrSize + qrPad + 30;
             ctx.textBaseline = 'middle';
+            ctx.textAlign = 'left';
 
-            // Serial No row
-            const labelX = W / 2 - 110;
-            ctx.font = '600 12px Arial, sans-serif';
-            ctx.fillStyle = '#8b5cf6';
-            ctx.fillText('SERIAL NO :', labelX, serialY);
+            const maxRowW = W - 40;
+            const colGap = 8;
 
-            ctx.font = 'bold 18px Arial, sans-serif';
-            ctx.fillStyle = '#4c1d95';
-            ctx.fillText(currentSerialCode, labelX + 95, serialY);
+            // Helper: draws label + value centered on the row, shrinks value font if overflow
+            const drawInfoRow = (label, value, y) => {
+                const labelFont = '600 12px Arial, sans-serif';
+                const labelColor = '#8b5cf6';
+                const valueColor = '#4c1d95';
 
-            // Hospite row
-            const hospiteY = serialY + 26;
-            ctx.font = '600 12px Arial, sans-serif';
-            ctx.fillStyle = '#8b5cf6';
-            ctx.fillText('Hospite :', labelX, hospiteY);
+                ctx.font = labelFont;
+                const lw = ctx.measureText(label).width;
 
-            ctx.font = 'bold 18px Arial, sans-serif';
-            ctx.fillStyle = '#4c1d95';
-            ctx.fillText(currentHospitalName || '—', labelX + 95, hospiteY);
+                let vSize = 18;
+                let vFont = `bold ${vSize}px Arial, sans-serif`;
+                ctx.font = vFont;
+                let vw = ctx.measureText(value).width;
+
+                // Shrink value font until everything fits
+                while ((lw + colGap + vw) > maxRowW && vSize > 10) {
+                    vSize--;
+                    vFont = `bold ${vSize}px Arial, sans-serif`;
+                    ctx.font = vFont;
+                    vw = ctx.measureText(value).width;
+                }
+
+                const startX = (W - (lw + colGap + vw)) / 2;
+
+                ctx.font = labelFont;
+                ctx.fillStyle = labelColor;
+                ctx.fillText(label, startX, y);
+
+                ctx.font = vFont;
+                ctx.fillStyle = valueColor;
+                ctx.fillText(value, startX + lw + colGap, y);
+            };
+
+            drawInfoRow('SERIAL NO :', currentSerialCode, serialY);
+            drawInfoRow('Hospital :', currentHospitalName || '—', serialY + 30);
 
             resolve(canvas);
         };
