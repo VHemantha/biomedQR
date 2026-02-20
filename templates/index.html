@@ -93,9 +93,9 @@ function generateQR() {
 
     Promise.all([qrFetch, masterFetch])
         .then(([data, masterData]) => {
-            // Extract hospital name from master data
-            if (masterData && masterData.productLocation) {
-                currentHospitalName = masterData.productLocation;
+            // Extract hospital name from master data (response is { success, data: {...} })
+            if (masterData && masterData.data && masterData.data.productLocation) {
+                currentHospitalName = masterData.data.productLocation;
             }
 
             if (data.qr_url) {
