@@ -46,6 +46,7 @@
 // Application state
 let currentEquipmentId = '';
 let currentSerialCode = '';
+let currentHospitalName = '';
 let selectedMethod = 'online';
 
 // Initialize on page load
@@ -80,16 +81,23 @@ function generateQR() {
     
     // Store serial code for later use
     currentSerialCode = serialCode;
-    
-    // Get QR URL from Flask backend
-    const params = new URLSearchParams({
-        item_id: itemId,
-        serial_code: serialCode
-    });
-    
-    fetch(`/generate_qr?${params.toString()}`)
-        .then(response => response.json())
-        .then(data => {
+    currentHospitalName = '';
+
+    // Fetch QR URL and master data in parallel
+    const params = new URLSearchParams({ item_id: itemId, serial_code: serialCode });
+
+    const qrFetch = fetch(`/generate_qr?${params.toString()}`).then(r => r.json());
+    const masterFetch = fetch(`/api/get_master_data/${encodeURIComponent(itemId)}`)
+        .then(r => r.json())
+        .catch(() => null);
+
+    Promise.all([qrFetch, masterFetch])
+        .then(([data, masterData]) => {
+            // Extract hospital name from master data
+            if (masterData && masterData.productLocation) {
+                currentHospitalName = masterData.productLocation;
+            }
+
             if (data.qr_url) {
                 if (selectedMethod === 'online') {
                     generateOnlineQR(data.qr_url, itemId);
@@ -232,7 +240,7 @@ function roundRect(ctx, x, y, w, h, r) {
 
 function createStickerCanvas(qrSourceCanvas) {
     return new Promise((resolve, reject) => {
-        const W = 400;
+        const W = 425;
         const H = 600; // 4:6 ratio
 
         const canvas = document.createElement('canvas');
@@ -284,17 +292,13 @@ function createStickerCanvas(qrSourceCanvas) {
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
 
-            ctx.font = 'bold 15px Arial, sans-serif';
+            ctx.font = 'bold 14px Arial, sans-serif';
             ctx.fillStyle = '#4c1d95';
-            ctx.fillText('Biomed International', textX, headerCenterY - 16);
-
-            ctx.font = '600 13px Arial, sans-serif';
-            ctx.fillStyle = '#581c87';
-            ctx.fillText('(Pvt) Ltd', textX, headerCenterY + 4);
+            ctx.fillText('Biomed International (Pvt) Ltd', textX, headerCenterY - 10);
 
             ctx.font = '600 12px Arial, sans-serif';
             ctx.fillStyle = '#7c3aed';
-            ctx.fillText('Hotline: 0777817817', textX, headerCenterY + 24);
+            ctx.fillText('Hotline: 0777817817', textX, headerCenterY + 14);
 
             // === DIVIDER with diamond ===
             const divY = headerY + headerH + 10;
@@ -344,18 +348,30 @@ function createStickerCanvas(qrSourceCanvas) {
             // Draw QR code
             ctx.drawImage(qrSourceCanvas, qrX, qrY, qrSize, qrSize);
 
-            // === SERIAL NUMBER (centered below QR) ===
-            const serialY = qrY + qrSize + qrPad + 30;
-            ctx.textAlign = 'center';
+            // === SERIAL NUMBER + HOSPITE (centered below QR) ===
+            const serialY = qrY + qrSize + qrPad + 28;
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
 
+            // Serial No row
+            const labelX = W / 2 - 110;
             ctx.font = '600 12px Arial, sans-serif';
             ctx.fillStyle = '#8b5cf6';
-            ctx.fillText('SERIAL NO :', W / 2 - 50, serialY);
+            ctx.fillText('SERIAL NO :', labelX, serialY);
 
-            ctx.font = 'bold 20px Arial, sans-serif';
+            ctx.font = 'bold 18px Arial, sans-serif';
             ctx.fillStyle = '#4c1d95';
-            ctx.fillText(currentSerialCode, W / 2 + 50, serialY);
+            ctx.fillText(currentSerialCode, labelX + 95, serialY);
+
+            // Hospite row
+            const hospiteY = serialY + 26;
+            ctx.font = '600 12px Arial, sans-serif';
+            ctx.fillStyle = '#8b5cf6';
+            ctx.fillText('Hospite :', labelX, hospiteY);
+
+            ctx.font = 'bold 18px Arial, sans-serif';
+            ctx.fillStyle = '#4c1d95';
+            ctx.fillText(currentHospitalName || '—', labelX + 95, hospiteY);
 
             resolve(canvas);
         };
