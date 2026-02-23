@@ -615,6 +615,7 @@ def handle_userT_request():
             'requesterMobile': contact_number,
             'productType': product_type,
             'modality': modality,
+            'manufacturer' : supplier_name,
             'city': city,
             'manufacturer': supplier_name
 
@@ -731,6 +732,7 @@ def handle_ots_request():
             'conactNumber': contact_number,
             'productName': product_type,
             'modality': modality,
+            'manufacturer' : supplier_name,
             'area': city
 
         }
@@ -844,6 +846,7 @@ def handle_repair_request():
             'serialNumber': serial_number,
             'productModel': product_model,
             'unit': unit,
+            'manufacturer' : supplier_name,
             'contactNumber': contact_number,
             'productType1': product_type,
             'modality': modality,
