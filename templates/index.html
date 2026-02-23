@@ -354,7 +354,7 @@ function createStickerCanvas(qrSourceCanvas) {
 
             const maxRowW = W - 40;
             const colGap = 8;
-            const labelFont = '600 12px Arial, sans-serif';
+            const labelFont = 'bold 13px Arial, sans-serif';
             const valueFont = 'bold 18px Arial, sans-serif';
             const lineH = 26;
 
@@ -417,7 +417,25 @@ function createStickerCanvas(qrSourceCanvas) {
             };
 
             const serialRowH = drawInfoRow('SERIAL NO :', currentSerialCode, serialY);
-            drawInfoRow('Hospital :', currentHospitalName || '—', serialY + serialRowH + 4);
+
+            // Hospital name — no label, centered, wraps across lines
+            const hospName = currentHospitalName || '—';
+            const hospStartY = serialY + serialRowH + 8;
+            ctx.font = valueFont;
+            const hospWords = hospName.split(' ');
+            const hospLines = [];
+            let hCur = '';
+            for (const word of hospWords) {
+                const test = hCur ? hCur + ' ' + word : word;
+                if (ctx.measureText(test).width <= maxRowW) { hCur = test; }
+                else { if (hCur) hospLines.push(hCur); hCur = word; }
+            }
+            if (hCur) hospLines.push(hCur);
+            hospLines.forEach((line, idx) => {
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#4c1d95';
+                ctx.fillText(line, W / 2, hospStartY + idx * lineH);
+            });
 
             resolve(canvas);
         };
