@@ -818,7 +818,7 @@ def handle_repair_request():
             }), 400
 
         print('=' * 60)
-        print('🔵 Repair REQUEST HANDLER')
+        print('🔵 Corrective Maintenance REQUEST HANDLER')
         print('=' * 60)
         print(f"Equipment ID: {equipment_id}")
         print(f"Item ID: {item_id}")
@@ -862,18 +862,18 @@ def handle_repair_request():
         # Make API call
         result = make_api_request_repair(api_data)
 
-        print('✅ Repair request submitted successfully')
+        print('✅ Corrective Maintenance request submitted successfully')
         print('=' * 60)
 
         return jsonify({
             'success': True,
-            'message': 'Repair Request submitted successfully!',
+            'message': 'Corrective Maintenance Request submitted successfully!',
             'data': result
         }), 200
 
     except Exception as e:
         print('=' * 60)
-        print(f"❌ Repair Request Failed: {str(e)}")
+        print(f"❌ Corrective Maintenance Request Failed: {str(e)}")
         import traceback
         traceback.print_exc()
         print('=' * 60)
