@@ -354,7 +354,7 @@ function createStickerCanvas(qrSourceCanvas) {
 
             const maxRowW = W - 40;
             const colGap = 8;
-            const labelFont = 'bold 13px Arial, sans-serif';
+            const labelFont = 'bold 16px Arial, sans-serif';
             const valueFont = 'bold 18px Arial, sans-serif';
             const lineH = 26;
 
@@ -402,6 +402,10 @@ function createStickerCanvas(qrSourceCanvas) {
                         ctx.font = labelFont;
                         ctx.fillStyle = '#8b5cf6';
                         ctx.fillText(label, startX, curY);
+                        // Extra stroke pass to simulate heavier weight
+                        ctx.strokeStyle = '#8b5cf6';
+                        ctx.lineWidth = 0.6;
+                        ctx.strokeText(label, startX, curY);
                         ctx.font = valueFont;
                         ctx.fillStyle = '#4c1d95';
                         ctx.fillText(line.text, startX + lw + colGap, curY);
