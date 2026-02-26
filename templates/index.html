@@ -248,27 +248,14 @@ function createStickerCanvas(qrSourceCanvas) {
         canvas.width = W;
         canvas.height = H;
 
-        // === BACKGROUND — light purple gradient ===
-        const bgGrad = ctx.createLinearGradient(0, 0, W * 0.4, H);
-        bgGrad.addColorStop(0, '#f5f0ff');
-        bgGrad.addColorStop(0.35, '#ede9fe');
-        bgGrad.addColorStop(0.7, '#e8d5f5');
-        bgGrad.addColorStop(1, '#f3e8ff');
-        ctx.fillStyle = bgGrad;
+        // === BACKGROUND — plain white ===
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, W, H);
 
-        // Subtle decorative accent circles
-        ctx.save();
-        ctx.globalAlpha = 0.05;
-        ctx.fillStyle = '#8b5cf6';
-        ctx.beginPath(); ctx.arc(W * 0.92, H * 0.06, 60, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(W * 0.05, H * 0.92, 50, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-
-        // Sticker border
-        ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
-        ctx.lineWidth = 2.5;
-        roundRect(ctx, 2, 2, W - 4, H - 4, 18);
+        // Thin black border
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, 2, 2, W - 4, H - 4, 14);
         ctx.stroke();
 
         // === TOP ROW: Logo (left) + Company info (right) ===
@@ -293,63 +280,63 @@ function createStickerCanvas(qrSourceCanvas) {
             ctx.textBaseline = 'middle';
 
             ctx.font = 'bold 14px Arial, sans-serif';
-            ctx.fillStyle = '#4c1d95';
+            ctx.fillStyle = '#000000';
             ctx.fillText('Biomed International (Pvt) Ltd', textX, headerCenterY - 10);
 
             ctx.font = '600 12px Arial, sans-serif';
-            ctx.fillStyle = '#7c3aed';
+            ctx.fillStyle = '#000000';
             ctx.fillText('Hotline: 0777817817', textX, headerCenterY + 14);
 
             // === DIVIDER with diamond ===
             const divY = headerY + headerH + 10;
             const divGrad = ctx.createLinearGradient(W * 0.06, 0, W * 0.94, 0);
-            divGrad.addColorStop(0, 'rgba(139, 92, 246, 0)');
-            divGrad.addColorStop(0.3, 'rgba(139, 92, 246, 0.4)');
-            divGrad.addColorStop(0.5, 'rgba(139, 92, 246, 0.6)');
-            divGrad.addColorStop(0.7, 'rgba(139, 92, 246, 0.4)');
-            divGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+            divGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            divGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.35)');
+            divGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.55)');
+            divGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.35)');
+            divGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.strokeStyle = divGrad;
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.moveTo(W * 0.06, divY);
             ctx.lineTo(W * 0.94, divY);
             ctx.stroke();
 
             // Diamond accent
-            ctx.fillStyle = '#8b5cf6';
+            ctx.fillStyle = '#000000';
             ctx.save();
             ctx.translate(W / 2, divY);
             ctx.rotate(Math.PI / 4);
             ctx.fillRect(-4, -4, 8, 8);
             ctx.restore();
 
-            // === QR CODE (centered middle) ===
-            const qrSize = 280;
-            const qrPad = 16;
+            // === QR CODE (centered middle) — larger ===
+            const qrSize = 310;
+            const qrPad = 12;
             const qrX = (W - qrSize) / 2;
-            const qrY = divY + 30;
+            const qrY = divY + 28;
 
-            // White card shadow
+            // Subtle gray shadow on QR card
             ctx.save();
-            ctx.shadowColor = 'rgba(124, 58, 237, 0.18)';
-            ctx.shadowBlur = 20;
-            ctx.shadowOffsetY = 5;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.10)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#ffffff';
-            roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 16);
+            roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 12);
             ctx.fill();
             ctx.restore();
 
-            // White card border
-            ctx.strokeStyle = 'rgba(139, 92, 246, 0.12)';
+            // QR card border
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.10)';
             ctx.lineWidth = 1;
-            roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 16);
+            roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 12);
             ctx.stroke();
 
             // Draw QR code
             ctx.drawImage(qrSourceCanvas, qrX, qrY, qrSize, qrSize);
 
             // === SERIAL NUMBER + HOSPITAL (centered, word-wrap for long names) ===
-            const serialY = qrY + qrSize + qrPad + 30;
+            const serialY = qrY + qrSize + qrPad + 22;
             ctx.textBaseline = 'middle';
 
             const maxRowW = W - 40;
@@ -366,9 +353,8 @@ function createStickerCanvas(qrSourceCanvas) {
                 ctx.font = valueFont;
 
                 const words = value.split(' ');
-                const lines = []; // { text, isFirst }
+                const lines = [];
 
-                // Fill first line: words that fit after the label
                 let cur = '';
                 let i = 0;
                 while (i < words.length) {
@@ -380,7 +366,6 @@ function createStickerCanvas(qrSourceCanvas) {
                 lines.push({ text: cur, isFirst: true });
                 cur = '';
 
-                // Remaining words onto their own centered lines
                 while (i < words.length) {
                     const test = cur ? cur + ' ' + words[i] : words[i];
                     if (ctx.measureText(test).width <= maxRowW) {
@@ -400,19 +385,18 @@ function createStickerCanvas(qrSourceCanvas) {
                         const startX = (W - (lw + colGap + vw)) / 2;
                         ctx.textAlign = 'left';
                         ctx.font = labelFont;
-                        ctx.fillStyle = '#8b5cf6';
+                        ctx.fillStyle = '#000000';
                         ctx.fillText(label, startX, curY);
-                        // Extra stroke pass to simulate heavier weight
-                        ctx.strokeStyle = '#8b5cf6';
+                        ctx.strokeStyle = '#000000';
                         ctx.lineWidth = 0.6;
                         ctx.strokeText(label, startX, curY);
                         ctx.font = valueFont;
-                        ctx.fillStyle = '#4c1d95';
+                        ctx.fillStyle = '#000000';
                         ctx.fillText(line.text, startX + lw + colGap, curY);
                     } else {
                         ctx.textAlign = 'center';
                         ctx.font = valueFont;
-                        ctx.fillStyle = '#4c1d95';
+                        ctx.fillStyle = '#000000';
                         ctx.fillText(line.text, W / 2, curY);
                     }
                     curY += lineH;
@@ -424,7 +408,7 @@ function createStickerCanvas(qrSourceCanvas) {
 
             // Hospital name — no label, centered, wraps across lines
             const hospName = currentHospitalName || '—';
-            const hospStartY = serialY + serialRowH + 8;
+            const hospStartY = serialY + serialRowH + 6;
             ctx.font = valueFont;
             const hospWords = hospName.split(' ');
             const hospLines = [];
@@ -437,7 +421,7 @@ function createStickerCanvas(qrSourceCanvas) {
             if (hCur) hospLines.push(hCur);
             hospLines.forEach((line, idx) => {
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#4c1d95';
+                ctx.fillStyle = '#000000';
                 ctx.fillText(line, W / 2, hospStartY + idx * lineH);
             });
 
