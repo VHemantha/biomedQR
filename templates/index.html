@@ -252,49 +252,48 @@ function createStickerCanvas(qrSourceCanvas) {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, W, H);
 
-        // Thin black border
+        // Thin border
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
         ctx.lineWidth = 1.5;
         roundRect(ctx, 2, 2, W - 4, H - 4, 14);
         ctx.stroke();
 
-        // === TOP ROW: Logo (left) + Company info (right) ===
         const drawContent = (logoImg) => {
-            const headerY = 22;
-            const headerH = 72;
-            const headerCenterY = headerY + headerH / 2;
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000000';
 
-            // -- Logo on left --
+            // === LOGO — centered, bigger ===
+            let logoBottomY = 18;
             if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
                 const logoAspect = logoImg.naturalWidth / logoImg.naturalHeight;
-                const logoW = 125;
+                const logoW = 190;
                 const logoH = logoW / logoAspect;
-                const logoX = 25;
-                const logoY = headerCenterY - logoH / 2;
+                const logoX = (W - logoW) / 2;
+                const logoY = 18;
                 ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+                logoBottomY = logoY + logoH;
             }
 
-            // -- Company info on right --
-            const textX = 165;
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-
+            // === COMPANY NAME — centered below logo ===
+            ctx.textAlign = 'center';
             ctx.font = 'bold 14px Arial, sans-serif';
             ctx.fillStyle = '#000000';
-            ctx.fillText('Biomed International (Pvt) Ltd', textX, headerCenterY - 10);
+            const companyY = logoBottomY + 16;
+            ctx.fillText('Biomed International (Pvt) Ltd', W / 2, companyY);
 
-            ctx.font = '600 12px Arial, sans-serif';
-            ctx.fillStyle = '#000000';
-            ctx.fillText('Hotline: 0777817817', textX, headerCenterY + 14);
+            // === HOTLINE — centered, bold 18px (same as serial value) ===
+            ctx.font = 'bold 18px Arial, sans-serif';
+            const hotlineY = companyY + 28;
+            ctx.fillText('Hotline: 0777817817', W / 2, hotlineY);
 
             // === DIVIDER with diamond ===
-            const divY = headerY + headerH + 10;
+            const divY = hotlineY + 22;
             const divGrad = ctx.createLinearGradient(W * 0.06, 0, W * 0.94, 0);
-            divGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            divGrad.addColorStop(0.3, 'rgba(0, 0, 0, 0.35)');
-            divGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.55)');
-            divGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.35)');
-            divGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            divGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            divGrad.addColorStop(0.3, 'rgba(0,0,0,0.35)');
+            divGrad.addColorStop(0.5, 'rgba(0,0,0,0.55)');
+            divGrad.addColorStop(0.7, 'rgba(0,0,0,0.35)');
+            divGrad.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.strokeStyle = divGrad;
             ctx.lineWidth = 1.2;
             ctx.beginPath();
@@ -302,7 +301,6 @@ function createStickerCanvas(qrSourceCanvas) {
             ctx.lineTo(W * 0.94, divY);
             ctx.stroke();
 
-            // Diamond accent
             ctx.fillStyle = '#000000';
             ctx.save();
             ctx.translate(W / 2, divY);
@@ -310,15 +308,14 @@ function createStickerCanvas(qrSourceCanvas) {
             ctx.fillRect(-4, -4, 8, 8);
             ctx.restore();
 
-            // === QR CODE (centered middle) — larger ===
-            const qrSize = 310;
+            // === QR CODE — centered ===
+            const qrSize = 268;
             const qrPad = 12;
             const qrX = (W - qrSize) / 2;
-            const qrY = divY + 28;
+            const qrY = divY + 22;
 
-            // Subtle gray shadow on QR card
             ctx.save();
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.10)';
+            ctx.shadowColor = 'rgba(0,0,0,0.10)';
             ctx.shadowBlur = 14;
             ctx.shadowOffsetY = 4;
             ctx.fillStyle = '#ffffff';
@@ -326,17 +323,15 @@ function createStickerCanvas(qrSourceCanvas) {
             ctx.fill();
             ctx.restore();
 
-            // QR card border
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.10)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.10)';
             ctx.lineWidth = 1;
             roundRect(ctx, qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 12);
             ctx.stroke();
 
-            // Draw QR code
             ctx.drawImage(qrSourceCanvas, qrX, qrY, qrSize, qrSize);
 
-            // === SERIAL NUMBER + HOSPITAL (centered, word-wrap for long names) ===
-            const serialY = qrY + qrSize + qrPad + 22;
+            // === SERIAL NO + HOSPITAL ===
+            const serialY = qrY + qrSize + qrPad + 20;
             ctx.textBaseline = 'middle';
 
             const maxRowW = W - 40;
@@ -345,8 +340,6 @@ function createStickerCanvas(qrSourceCanvas) {
             const valueFont = 'bold 18px Arial, sans-serif';
             const lineH = 26;
 
-            // Draws label + value centered. Value wraps to extra centered lines if too long.
-            // Returns total height consumed.
             const drawInfoRow = (label, value, y) => {
                 ctx.font = labelFont;
                 const lw = ctx.measureText(label).width;
@@ -354,26 +347,18 @@ function createStickerCanvas(qrSourceCanvas) {
 
                 const words = value.split(' ');
                 const lines = [];
-
-                let cur = '';
-                let i = 0;
+                let cur = '', i = 0;
                 while (i < words.length) {
                     const test = cur ? cur + ' ' + words[i] : words[i];
-                    if (ctx.measureText(test).width <= maxRowW - lw - colGap) {
-                        cur = test; i++;
-                    } else { break; }
+                    if (ctx.measureText(test).width <= maxRowW - lw - colGap) { cur = test; i++; }
+                    else break;
                 }
                 lines.push({ text: cur, isFirst: true });
                 cur = '';
-
                 while (i < words.length) {
                     const test = cur ? cur + ' ' + words[i] : words[i];
-                    if (ctx.measureText(test).width <= maxRowW) {
-                        cur = test; i++;
-                    } else {
-                        if (cur) lines.push({ text: cur, isFirst: false });
-                        cur = words[i]; i++;
-                    }
+                    if (ctx.measureText(test).width <= maxRowW) { cur = test; i++; }
+                    else { if (cur) lines.push({ text: cur, isFirst: false }); cur = words[i]; i++; }
                 }
                 if (cur) lines.push({ text: cur, isFirst: false });
 
