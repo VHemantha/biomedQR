@@ -983,7 +983,7 @@ def get_master_data(item_id):
         print(f"Fetching data for item_id: {item_id} (default endpoint)")
 
         response = requests.get(
-            f'{datatable_endpoint}?limit=100&offset=0',
+            f'{datatable_endpoint}?limit=2000&offset=0',
             headers={
                 'Authorization': f'Bearer {token}',
                 'Content-Type': 'application/json',
@@ -995,8 +995,8 @@ def get_master_data(item_id):
             records = response.json()
             print(f"Fetched {len(records)} records from API")
 
-            # Filter records by itemID
-            matching_records = [r for r in records if r.get('itemID') == item_id]
+            # Filter records by itemID — cast both sides to str to handle numeric IDs
+            matching_records = [r for r in records if str(r.get('itemID')) == str(item_id)]
 
             if matching_records:
                 print(f"Found matching record for itemID: {item_id}")
