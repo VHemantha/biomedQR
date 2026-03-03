@@ -495,7 +495,8 @@ def handle_consumable_request():
             'conactNumber': contact_number,
             'productName': product_type,
             'modality': modality,
-            'area': city
+            'area': city,
+            'itmid': item_id
 
         }
 
