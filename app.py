@@ -444,7 +444,6 @@ def handle_consumable_request():
         product_type = data.get('product_type', '').strip()
         modality = data.get('modality', '').strip()
         city = data.get('city', '').strip()
-        field_engineer = data.get('field_engineer', '').strip()
 
         # Validation
         if not equipment_id:
@@ -496,8 +495,7 @@ def handle_consumable_request():
             'conactNumber': contact_number,
             'productName': product_type,
             'modality': modality,
-            'area': city,
-            'fieldEngineer': field_engineer
+            'area': city
 
         }
 
