@@ -89,13 +89,21 @@ function generateQR() {
     const qrFetch = fetch(`/generate_qr?${params.toString()}`).then(r => r.json());
     const masterFetch = fetch(`/api/get_master_data/${encodeURIComponent(itemId)}`)
         .then(r => r.json())
-        .catch(() => null);
+        .catch(err => { console.error('Master data fetch error:', err); return null; });
 
     Promise.all([qrFetch, masterFetch])
         .then(([data, masterData]) => {
-            // Extract hospital name from master data (response is { success, data: {...} })
-            if (masterData && masterData.data && masterData.data.productLocation) {
-                currentHospitalName = masterData.data.productLocation;
+            console.log('Master data response:', JSON.stringify(masterData));
+
+            // Response shape: { success: true, data: { productLocation: "...", ... } }
+            if (masterData && masterData.success && masterData.data) {
+                const record = masterData.data;
+                console.log('Record fields:', Object.keys(record));
+                // productLocation is the hospital field
+                currentHospitalName = record.productLocation || record.hospital || record.location || '';
+                console.log('Hospital name resolved to:', currentHospitalName);
+            } else if (masterData && !masterData.success) {
+                console.warn('Master data lookup failed:', masterData.error);
             }
 
             if (data.qr_url) {
